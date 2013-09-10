@@ -73,3 +73,51 @@ tnc.on(
 * **setHardware(value)** - Most people won't need to use this ... consult your TNC's documentation.
 * **close()** - Close the connection to the TNC.
 * **exitKISS()** - Bring the TNC out of KISS mode (if your TNC has a terminal mode.)
+
+####ax25Packet
+
+```js
+var packet = new ax25Packet(frame);
+```
+
+The *frame* argument would be an array of unsigned ints, such as provided by the kissTNC's "frame" event.
+
+```js
+var util = require("util");
+var kissTNC = require("ax25").kissTNC;
+var ax25Packet = require("ax25").ax25Packet;
+
+var tnc = new kissTNC("COM3", 9600);
+
+tnc.on(
+	"error",
+	function(err) {
+		console.log(err);
+	}
+);
+
+tnc.on(
+	"open",
+	function() {
+		console.log("TNC opened on " + tnc.serialPort + " at " + tnc.baudRate);
+	}
+);
+
+tnc.on(
+	"frame",
+	function(frame) {
+		var packet = new ax25Packet(frame);
+		console.log(
+			util.format(
+				"Packet seen from %s-%s to %s-%s.",
+				packet.sourceCallsign,
+				packet.sourceSSID,
+				packet.destinationCallsign,
+				packet.destinationSSID
+			)
+		);
+		if(packet.infoString != "")
+			console.log(packet.infoString);
+	}
+);
+```
