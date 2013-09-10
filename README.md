@@ -14,4 +14,4 @@ Next up is an ax25Session object, to be followed by some kind of ax25Server.  Th
 
 [node-serialport](https://github.com/voodootikigod/node-serialport)
 
-If you intent do interface with a conventional KISS TNC, the node-serialport module will be required.  Installation of this package can be a bit more complicated than is usual, so be sure to read the instructions.
+If you intend to interface with a conventional KISS TNC, the node-serialport module will be required.  Installation of this package can be a bit more complicated than is usual, so be sure to read the instructions.
