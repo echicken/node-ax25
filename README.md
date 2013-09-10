@@ -69,7 +69,7 @@ tnc.on(
 
 #####Methods:
 
-* *send(frame)* - Sends an AX.25 frame to the TNC to be sent out over the air.  ("frame" must be an array of bytes, representing an AX.25 frame less the flags and FCS.)
-* *setHardware(value)* - Most people won't need to use this ... consult your TNC's documentation.
-* *close()* - Close the connection to the TNC.
-* *exitKISS()* - Bring the TNC out of KISS mode (if your TNC has a terminal mode.)
+* **send(frame)** - Sends an AX.25 frame to the TNC to be sent out over the air.  ("frame" must be an array of bytes, representing an AX.25 frame less the flags and FCS.)
+* **setHardware(value)** - Most people won't need to use this ... consult your TNC's documentation.
+* **close()** - Close the connection to the TNC.
+* **exitKISS()** - Bring the TNC out of KISS mode (if your TNC has a terminal mode.)
