@@ -78,7 +78,7 @@ var kissTNC = function(
 	this.__defineGetter__(
 		"txDelay",
 		function() {
-			return properties.txDelay;
+			return properties.txDelay * 10;
 		}
 	);
 
@@ -101,7 +101,7 @@ var kissTNC = function(
 	this.__defineGetter__(
 		"persistence",
 		function() {
-			return properties.persistence;
+			return (properties.persistence / 256) + 1;
 		}
 	);
 
@@ -124,7 +124,7 @@ var kissTNC = function(
 	this.__defineGetter__(
 		"slotTime",
 		function() {
-			return properties.slotTime;
+			return properties.slotTime * 10;
 		}
 	);
 	
@@ -146,7 +146,7 @@ var kissTNC = function(
 	this.__defineGetter__(
 		"txTail",
 		function() {
-			return properties.txTail;
+			return properties.txTail * 10;
 		}
 	);
 
