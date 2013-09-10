@@ -97,7 +97,7 @@ tnc.on(
 );
 
 tnc.on(
-	"open",
+	"opened",
 	function() {
 		console.log("TNC opened on " + tnc.serialPort + " at " + tnc.baudRate);
 	}
