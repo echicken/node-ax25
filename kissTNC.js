@@ -2,7 +2,6 @@ var kiss		= require("./kissdefs.js").kiss;
 var util		= require("util");
 var events		= require("events");
 var SerialPort	= require("serialport").SerialPort;
-var fs			= require("fs");
 
 var kissTNC = function(
 	serialPort,		// eg. "COM3" or "/dev/ttyUSB0" (Required)

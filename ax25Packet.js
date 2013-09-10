@@ -27,7 +27,7 @@ var ax25Packet = function(frame) {
 		'destinationSSID'		: 0,
 		'sourceCallsign'		: "",
 		'sourceSSID'			: 0,
-		'repeaterPath'			: [ ],
+		'repeaterPath'			: [],
 		'pollFinal'				: 0,
 		'command'				: 0,
 		'response'				: 0,
@@ -35,7 +35,7 @@ var ax25Packet = function(frame) {
 		'nr'					: 0,
 		'ns'					: 0,
 		'pid'					: ax25.PID_NONE,
-		'info'					: [ ]
+		'info'					: []
 	};
 	
 	this.__defineGetter__(
