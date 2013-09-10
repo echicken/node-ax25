@@ -231,7 +231,6 @@ var kissTNC = function(
 	serialHandle.on(
 		"open",
 		function() {
-			self.emit("opened");
 			if(typeof txDelay != "undefined")
 				self.txDelay = txDelay;
 			if(typeof persistence != "undefined")
@@ -242,7 +241,7 @@ var kissTNC = function(
 				self.txTail = txTail;
 			if(typeof fullDupled != "undefined")
 				self.fullDuplex = fullDuplex;
-			self.emit("configured");
+			self.emit("opened");
 		}
 	);
 	
