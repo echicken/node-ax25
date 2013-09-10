@@ -24,7 +24,7 @@ If you intend to interface with a conventional KISS TNC, the node-serialport mod
 var tnc = new kissTNC(serialPort, baudRate, txDelay, persistence, slotTime, txTail, fullDuplex);
 ```
 
-The serialPort and baudRate arguments are required.  The rest are optional, and can be set after the fact.
+The *serialPort* and *baudRate* arguments are required.  The rest are optional, and can be set after the fact.
 
 ```js
 var kissTNC = require("ax25").kissTNC;
@@ -51,21 +51,21 @@ tnc.on(
 
 #####Events:
 
-* *opened* - The connection to the TNC has been opened successfully.
-* *closed* - The connection to the TNC has been closed.
-* *error* - An error has occurred (error details will be supplied as an argument to your callback function.)
-* *frame* - A KISS frame has been received from the TNC (the enclosed AX.25 frame, less start/stop flags and FCS, will be supplied as an argument to your callback function.)
-* *sent* - A KISS frame was sent to the TNC (the number of bytes sent to the TNC will be supplied as an argument to your callback function.  Not very useful.)
+* **opened** - The connection to the TNC has been opened successfully.
+* **closed** - The connection to the TNC has been closed.
+* **error** - An error has occurred (error details will be supplied as an argument to your callback function.)
+* **frame** - A KISS frame has been received from the TNC (the enclosed AX.25 frame, less start/stop flags and FCS, will be supplied as an argument to your callback function.)
+* **sent** - A KISS frame was sent to the TNC (the number of bytes sent to the TNC will be supplied as an argument to your callback function.  Not very useful.)
 
 #####Properties:
 
-* *serialPort* - eg. "COM1", or "/dev/ttyUSB0".
-* *baudRate* - eg. 1200, 9600, 115200.
-* *txDelay* - Transmitter keyup delay, in milliseconds. Default: 500
-* *persistence* - Persistence, float between 0 and 1. Default: 0.25
-* *slotTime* - Slot interval, in milliseconds. Default : 100ms
-* *txTail* - Time to keep transmitting after packet is sent, in milliseconds (deprecated)
-* *fullDuplex* - Boolean, default: false.
+* **serialPort** - eg. "COM1", or "/dev/ttyUSB0".
+* **baudRate** - eg. 1200, 9600, 115200.
+* **txDelay** - Transmitter keyup delay, in milliseconds. Default: 500
+* **persistence** - Persistence, float between 0 and 1. Default: 0.25
+* **slotTime** - Slot interval, in milliseconds. Default : 100ms
+* **txTail** - Time to keep transmitting after packet is sent, in milliseconds (deprecated)
+* **fullDuplex** - Boolean, default: false.
 
 #####Methods:
 
