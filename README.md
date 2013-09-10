@@ -86,6 +86,7 @@ The *frame* argument would be an array of unsigned ints, such as provided by the
 var util = require("util");
 var kissTNC = require("ax25").kissTNC;
 var ax25Packet = require("ax25").ax25Packet;
+var ax25 = require("ax25").ax25;
 
 var tnc = new kissTNC("COM3", 9600);
 
@@ -120,4 +121,17 @@ tnc.on(
 			console.log(packet.infoString);
 	}
 );
+
+var beacon = function() {
+	var packet = new ax25Packet();
+	packet.sourceCallsign = "MYCALL";
+	packet.destinationCallsign = "BEACON";
+	packet.type = ax25.U_FRAME_UI;
+	packet.infoString = "Hello world!";
+	var frame = packet.assemble();
+	tnc.send(frame);
+	console.log("Beacon sent.");
+}
+
+setTimeout(beacon, 30000); // Beacon every 30 seconds - excessive!
 ```
