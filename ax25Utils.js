@@ -21,4 +21,4 @@ var ax25Utils = function() {
 	}
 }
 
-exports.ax25Utils = ax25Utils;
+module.exports.ax25Utils = ax25Utils;
