@@ -2,11 +2,9 @@
 
 A KISS &amp; AX.25 stack for node.js.
 
-This project is incomplete, but is in progress as of September 2013.  Usage examples will follow once there's more that can be done with this.
+A work in progress.  Currently usable for stateless things like APRS and whatever other unconnected-mode stuff you may want to do.
 
-In its current state, this module could be used for things like APRS monitoring and messaging, or anything else that doesn't require connected-mode sessions or flow control.
-
-Next up is an ax25Session object, to be followed by some kind of ax25Server.  These will allow stateful sessions with remote systems.
+ax25Session object is next on the list, which will allow for stateful communication and make use of AX.25's flow control junk.
 
 ---
 
