@@ -20,3 +20,5 @@ var ax25Utils = function() {
 		return true;
 	}
 }
+
+exports.ax25Utils = ax25Utils;
