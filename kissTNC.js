@@ -6,6 +6,8 @@ var SerialPort	= require("serialport").SerialPort;
 var kissTNC = function(
 	serialPort,		// eg. "COM3" or "/dev/ttyUSB0" (Required)
 	baudRate,		// eg. 9600 (rate for serial comms with the TNC) (Required)
+	callSign,		// eg. "VE3XEC" (Optional)
+	SSID,			// eg. 0 (Optional)
 	txDelay,		// In milliseconds (Optional)
 	persistence,	// eg. .25, a number between zero and 1 (Optional)
 	slotTime,		// In milliseconds (Optional)
@@ -20,6 +22,8 @@ var kissTNC = function(
 	var properties = {
 		'serialPort'	: 0,
 		'baudRate'		: 0,
+		'callSign'		: "",
+		'SSID'			: 0,
 		'txDelay'		: 50,
 		'persistence'	: 63,
 		'slotTime'		: 10,
@@ -56,6 +60,38 @@ var kissTNC = function(
 		"baudRate",
 		function() {
 			return properties.baudRate;
+		}
+	);
+
+	this.__defineSetter__(
+		"callSign",
+		function(callSign) {
+			if(typeof callSign != "string")
+				throw "kissTNC: Invalid callsign provided."
+			properties.callSign = callSign;
+		}
+	);
+
+	this.__defineGetter__(
+		"callSign",
+		function() {
+			return properties.callSign;
+		}
+	);
+
+	this.__defineSetter__(
+		"SSID",
+		function(SSID) {
+			if(typeof SSID != "number" || SSID < 0 || SSID > 15)
+				throw "kissTNC: Invalid SSID provided."
+			properties.SSID = SSID;
+		}
+	);
+
+	this.__defineGetter__(
+		"SSID",
+		function() {
+			return properties.SSID;
 		}
 	);
 

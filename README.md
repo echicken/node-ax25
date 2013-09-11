@@ -22,6 +22,8 @@ If you intend to interface with a conventional KISS TNC, the node-serialport mod
 var tnc = new kissTNC(
 	serialPort,
 	baudRate,
+	callSign,
+	SSID,
 	txDelay,
 	persistence,
 	slotTime,
@@ -67,6 +69,8 @@ tnc.on(
 
 * **serialPort** - eg. "COM1", or "/dev/ttyUSB0". (String)
 * **baudRate** - eg. 1200, 9600, 115200. (Number)
+* **callSign** - eg. "VE3XEC". (String)
+* **SSID** - eg. 0. (Number, 0 - 15)
 * **txDelay** - Transmitter keyup delay, in milliseconds. Default: 500. (Number)
 * **persistence** - Persistence, float between 0 and 1. Default: 0.25. (Number)
 * **slotTime** - Slot interval, in milliseconds. Default : 100. (Number)
