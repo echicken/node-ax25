@@ -1,6 +1,6 @@
 // AX.25 & KISS protocol-related constants
 
-exports.ax25 = {
+exports.ax25Defs = {
 	FLAG : (1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6),	// Unused, but included for non-KISS implementations.
 
 	// Address field - SSID subfield bitmasks

@@ -1,5 +1,5 @@
 // KISS protocol-related constants
-exports.kiss = {
+exports.kissDefs = {
 
 	// 	FEND and transpositions
 	FEND	: (1<<6)|(1<<7),								// Frame end
