@@ -293,10 +293,7 @@ var ax25Packet = function(frame) {
 	this.__defineGetter__(
 		"infoString",
 		function() {
-			var str = "";
-			for(var i = 0; i < properties.info.length; i++)
-				str += String.fromCharCode(properties.info[i]);
-			return str;
+			return ax25Utils.byteArrayToString(properties.info);
 		}
 	);
 	
@@ -305,10 +302,7 @@ var ax25Packet = function(frame) {
 		function(info) {
 			if(typeof info != "string")
 				throw "ax25Packet.infoString: type mismatch.";
-			info = info.split("");
-			for(var i = 0; i < info.length; i++)
-				info[i] = info[i].charCodeAt(0);
-			properties.info = info;
+			properties.info = ax25Utils.stringToByteArray(info);
 		}
 	);
 	
