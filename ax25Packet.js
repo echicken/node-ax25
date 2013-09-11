@@ -1,24 +1,5 @@
 var ax25Defs = require("./ax25defs.js").ax25Defs;
-
-/*	testCallsign(callsign) - boolean
-	Returns true if 'callsign' is a valid AX.25 callsign (a string
-	containing up to six letters and numbers only.) */
-var testCallsign = function(callsign) {
-	if(typeof callsign == "undefined" || callsign.length > 6)
-		return false;
-	callsign = callsign.toUpperCase().replace(/\s*$/g, "");
-	for(var c = 0; c < callsign.length; c++) {
-		var a = callsign[c].charCodeAt(0);
-		if(	(a >= 48 && a <= 57)
-			||
-			(a >=65 && a <=90)
-		) {
-			continue;
-		}
-		return false;
-	}
-	return true;
-}
+var ax25Utils = require("./ax25Utils.js").ax25Utils;
 
 var ax25Packet = function(frame) {
 	
@@ -41,7 +22,7 @@ var ax25Packet = function(frame) {
 	this.__defineGetter__(
 		"destinationCallsign",
 		function() {
-			if(!testCallsign(properties.destinationCallsign))
+			if(!ax25Utils.testCallsign(properties.destinationCallsign))
 				throw "ax25Packet: Invalid destination callsign.";
 			return properties.destinationCallsign;
 		}
@@ -50,7 +31,7 @@ var ax25Packet = function(frame) {
 	this.__defineSetter__(
 		"destinationCallsign",
 		function(callsign) {
-			if(typeof callsign == "undefined" || !testCallsign(callsign))
+			if(typeof callsign == "undefined" || !ax25Utils.testCallsign(callsign))
 				throw "ax25Packet: Invalid destination callsign.";
 			properties.destinationCallsign = callsign;
 		}
@@ -77,7 +58,7 @@ var ax25Packet = function(frame) {
 	this.__defineGetter__(
 		"sourceCallsign",
 		function() {
-			if(!testCallsign(properties.sourceCallsign))
+			if(!ax25Utils.testCallsign(properties.sourceCallsign))
 				throw "ax25Packet: Invalid source callsign.";
 			return properties.sourceCallsign;
 		}
@@ -86,7 +67,7 @@ var ax25Packet = function(frame) {
 	this.__defineSetter__(
 		"sourceCallsign",
 		function(callsign) {
-			if(typeof callsign == "undefined" || !testCallsign(callsign))
+			if(typeof callsign == "undefined" || !ax25Utils.testCallsign(callsign))
 				throw "ax25Packet: Invalid source callsign.";
 			properties.sourceCallsign = callsign;
 		}
@@ -126,7 +107,7 @@ var ax25Packet = function(frame) {
 			for(var r = 0; r < repeaters.length; r++) {
 				if(	!repeaters[r].hasOwnProperty('callsign')
 					||
-					!testCallsign(repeaters[r].callsign)
+					!ax25Utils.testCallsign(repeaters[r].callsign)
 				) {
 					throw msg;
 				}
