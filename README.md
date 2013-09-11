@@ -59,13 +59,13 @@ tnc.on(
 
 #####Properties:
 
-* **serialPort** - eg. "COM1", or "/dev/ttyUSB0".
-* **baudRate** - eg. 1200, 9600, 115200.
-* **txDelay** - Transmitter keyup delay, in milliseconds. Default: 500
-* **persistence** - Persistence, float between 0 and 1. Default: 0.25
-* **slotTime** - Slot interval, in milliseconds. Default : 100ms
-* **txTail** - Time to keep transmitting after packet is sent, in milliseconds (deprecated)
-* **fullDuplex** - Boolean, default: false.
+* **serialPort** - eg. "COM1", or "/dev/ttyUSB0". (String)
+* **baudRate** - eg. 1200, 9600, 115200. (Number)
+* **txDelay** - Transmitter keyup delay, in milliseconds. Default: 500. (Number)
+* **persistence** - Persistence, float between 0 and 1. Default: 0.25. (Number)
+* **slotTime** - Slot interval, in milliseconds. Default : 100. (Number)
+* **txTail** - Time to keep transmitting after packet is sent, in milliseconds (deprecated.) (Number)
+* **fullDuplex** - Boolean, default: false. (Boolean)
 
 #####Methods:
 
@@ -138,16 +138,22 @@ setInterval(beacon, 30000); // Beacon every 30 seconds - excessive!
 
 #####Properties
 
-* **destinationCallsign** - 
-* **destinationSSID** - 
-* **sourceCallsign** - 
-* **sourceSSID** - 
-* **repeaterPath** - 
-* **pollFinal** - 
-* **command** - 
-* **response** - 
-* **type** - 
-* **nr** - 
-* **ns** - 
-* **pid** - 
-* **info** - 
+* **destinationCallsign** - The destination callsign, up to six alphanumerics. (String)
+* **destinationSSID** - The destination SSID, one number. (Number)
+* **sourceCallsign** - The source callsign, up to six alphanumerics. (String)
+* **sourceSSID** - The source SSID, one number. (Number)
+* **repeaterPath** - An array of { callsign : <string>, ssid : <number> } objects. (Array of objects)
+* **pollFinal** - True if this is a poll/final packet, false otherwise. (Boolean)
+* **command** - True if this is a command packet, false otherwise.  Inverse of *response*. (Boolean)
+* **response** - True if this is a response packet, false otherwise.  Inverse of *command*. (Boolean)
+* **type** - Bitfield for comparison against packet types as defined in ax25defs.js (eg. U_FRAME, I_FRAME, S_FRAME.)  (Number)
+* **nr** - Sender's receive-sequence number (N(R) in the AX.25 2.2 spec.) (Number)
+* **ns** - Sender's send-sequence number (N(S) in the AX.25 2.2 spec.) (Number)
+* **pid** - Protocol ID field, for comparison against PIDs defined in ax25defs.js. (Number)
+* **info** - The information field of an I or UI frame. (Array)
+* **infoString** - The information field of an I or UI frame, as a string. (String)
+
+#####Methods
+
+* **disassemble(frame)** - Where 'frame' is an array of numbers representing an AX.25 frame (eg. the value provided by the kissTNC *frame* event,) disassemble 'frame' and populate the above properties with the values found therein. (Note: if ax25Packet is instantiated with a *frame* argument, this will happen automatically.) (Void)
+* **assemble()** - When creating an outgoing frame, make a new ax25Packet object, populate its properties as desired, then call *ax25Packet*.assemble(), which will return an array of numbers representing an AX.25 frame (which can be supplied to kissTNC.send(frame).) (Array)
