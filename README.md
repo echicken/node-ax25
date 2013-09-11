@@ -133,5 +133,21 @@ var beacon = function() {
 	console.log("Beacon sent.");
 }
 
-setTimeout(beacon, 30000); // Beacon every 30 seconds - excessive!
+setInterval(beacon, 30000); // Beacon every 30 seconds - excessive!
 ```
+
+#####Properties
+
+* **destinationCallsign** - 
+* **destinationSSID** - 
+* **sourceCallsign** - 
+* **sourceSSID** - 
+* **repeaterPath** - 
+* **pollFinal** - 
+* **command** - 
+* **response** - 
+* **type** - 
+* **nr** - 
+* **ns** - 
+* **pid** - 
+* **info** - 
