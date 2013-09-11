@@ -1,8 +1,5 @@
 var ax25Utils = function() {
 
-	/*	testCallsign(callsign) - boolean
-	Returns true if 'callsign' is a valid AX.25 callsign (a string
-	containing up to six letters and numbers only.) */
 	this.testCallsign = function(callsign) {
 		if(typeof callsign == "undefined" || callsign.length > 6)
 			return false;
