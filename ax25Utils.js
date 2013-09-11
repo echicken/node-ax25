@@ -1,5 +1,8 @@
 var ax25Utils = function() {
 
+	var whatever = "whatever";
+	this.whatever = whatever;
+
 	this.testCallsign = function(callsign) {
 		if(typeof callsign == "undefined" || callsign.length > 6)
 			return false;
