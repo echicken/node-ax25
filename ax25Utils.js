@@ -1,4 +1,4 @@
-exports.ax25Utils = function() {
+var ax25Utils = function() {
 
 	/*	testCallsign(callsign) - boolean
 	Returns true if 'callsign' is a valid AX.25 callsign (a string
@@ -21,3 +21,5 @@ exports.ax25Utils = function() {
 	}
 
 }
+
+exports.ax25Utils = ax25Utils;
