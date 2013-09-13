@@ -1,6 +1,7 @@
 var util		= require("util");
 var events		= require("events");
 var SerialPort	= require("serialport").SerialPort;
+var ax25		= require("./index.js");
 
 var kissTNC = function(args) {
 
@@ -61,7 +62,7 @@ var kissTNC = function(args) {
 				throw "kissTNC: Invalid txDelay";
 			}
 			properties.txDelay = txDelay / 10;
-			sendFrame(kissDefs.TXDELAY, [properties.txDelay]);
+			sendFrame(ax25.kissDefs.TXDELAY, [properties.txDelay]);
 		}
 	);
 	
@@ -84,7 +85,7 @@ var kissTNC = function(args) {
 				throw "kissTNC: Invalid persistence";
 			}
 			properites.persistence = (persistence * 256) - 1;
-			sendFrame(kissDefs.PERSISTENCE, [properties.persistence]);
+			sendFrame(ax25.kissDefs.PERSISTENCE, [properties.persistence]);
 		}
 	);
 	
@@ -107,7 +108,7 @@ var kissTNC = function(args) {
 				throw "kissTNC: Invalid slotTime";
 			}
 			properties.slotTime = slotTime / 10;
-			sendFrame(kissDefs.SLOTTIME, [properties.slotTIme]);
+			sendFrame(ax25.kissDefs.SLOTTIME, [properties.slotTIme]);
 		}
 	);
 	
@@ -129,7 +130,7 @@ var kissTNC = function(args) {
 			)
 				throw "kissTNC: Invalid txTail";
 			properties.txTail = txTail / 10;
-			sendFrame(kissDefs.TXTAIL, [properties.txTail]);
+			sendFrame(ax25.kissDefs.TXTAIL, [properties.txTail]);
 		}
 	);
 	
@@ -147,7 +148,7 @@ var kissTNC = function(args) {
 				throw "kissTNC: fullDuplex must be boolean";
 			properties.fullDuplex = fullDuplex;
 			sendFrame(
-				kissDefs.FULLDUPLEX,
+				ax25.kissDefs.FULLDUPLEX,
 				[(properties.fullDuplex) ? 1 : 0]
 			);
 		}
@@ -167,10 +168,10 @@ var kissTNC = function(args) {
 		
 	var sendFrame = function(command, data) {
 		if(!(data instanceof Array))
-			throw "kissTNC: Invalid send data";
+			throw "ax25.kissTNC: Invalid send data";
 		data.unshift(command);
-		data.unshift(kissDefs.FEND);
-		data.push(kissDefs.FEND);
+		data.unshift(ax25.kissDefs.FEND);
+		data.push(ax25.kissDefs.FEND);
 		serialHandle.write(
 			data,
 			function(err, result) {
@@ -186,17 +187,17 @@ var kissTNC = function(args) {
 		var str = "";
 		var escaped = false;
 		for(var d = 0; d < data.length; d++) {
-			if(data[d] == kissDefs.FESC) {
+			if(data[d] == ax25.kissDefs.FESC) {
 				escaped = true;
 				continue;
 			}
-			if(escaped && data[d] == kissDefs.TFEND)
-				data[d] = kissDefs.FEND;
-			if(escaped && data[d] == kissDefs.TFESC)
-				data[d] = kissDefs.FESC;
-			if(escaped || data[d] != kissDefs.FEND)
+			if(escaped && data[d] == ax25.kissDefs.TFEND)
+				data[d] = ax25.kissDefs.FEND;
+			if(escaped && data[d] == ax25.kissDefs.TFESC)
+				data[d] = ax25.kissDefs.FESC;
+			if(escaped || data[d] != ax25.kissDefs.FEND)
 				dataBuffer.push(data[d]);
-			if(!escaped && data[d] == kissDefs.FEND && dataBuffer.length > 1) {
+			if(!escaped && data[d] == ax25.kissDefs.FEND && dataBuffer.length > 1) {
 				self.emit("frame", dataBuffer.slice(1));
 				dataBuffer = [];
 			}
@@ -253,17 +254,17 @@ var kissTNC = function(args) {
 	);
 
 	this.setHardware = function(value) {
-		sendFrame(kissDefs.SETHARDWARE, [value]);
+		sendFrame(ax25.kissDefs.SETHARDWARE, [value]);
 	}
 	
 	this.send = function(data) {
 		if(!(data instanceof Array))
 			throw "kissTNC.send: data type mismatch.";
-		sendFrame(kissDefs.DATAFRAME, data);
+		sendFrame(ax25.kissDefs.DATAFRAME, data);
 	}
 	
 	this.exitKISS = function() {
-		sendFrame(kissDefs.RETURN, []);
+		sendFrame(ax25.kissDefs.RETURN, []);
 	}
 
 	this.close = function() {
