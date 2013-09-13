@@ -66,4 +66,4 @@ var Utils = function() {
 
 }
 
-exports = new Utils;
+module.exports = new Utils;

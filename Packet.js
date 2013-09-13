@@ -468,4 +468,4 @@ var Packet = function(frame) {
 	
 }
 
-exports = Packet;
+module.exports = Packet;
