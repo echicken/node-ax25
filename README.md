@@ -4,7 +4,7 @@ A KISS &amp; AX.25 stack for node.js.
 
 A work in progress.  Currently usable for stateless things like APRS and whatever other unconnected-mode stuff you may want to do.
 
-ax25Session object is next on the list, which will allow for stateful communication and make use of AX.25's flow control junk.
+ax25.Session object is next on the list, which will allow for stateful communication and make use of AX.25's flow control junk.
 
 ---
 
