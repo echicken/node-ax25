@@ -1,5 +1,5 @@
 // KISS protocol-related constants
-exports.kissDefs = {
+var kissDefs = {
 
 	// 	FEND and transpositions
 	FEND	: (1<<6)|(1<<7),								// Frame end
@@ -18,3 +18,5 @@ exports.kissDefs = {
 	RETURN		: 255	// Exit KISS mode
 
 }
+
+exports = kissDefs;

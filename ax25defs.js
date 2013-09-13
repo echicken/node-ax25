@@ -1,6 +1,6 @@
 // AX.25 & KISS protocol-related constants
 
-exports.ax25Defs = {
+var ax25Defs = {
 	FLAG : (1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6),	// Unused, but included for non-KISS implementations.
 
 	// Address field - SSID subfield bitmasks
@@ -47,3 +47,5 @@ exports.ax25Defs = {
 	PID_NONE		: (1<<4)|(1<<5)|(1<<6)|(1<<7),					// No layer 3 protocol implemented
 	PID_ESC			: 255											// Escape character. Next octet contains more Level 3 protocol information.
 }
+
+exports = ax25Defs;

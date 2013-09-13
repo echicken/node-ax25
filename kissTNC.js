@@ -1,13 +1,12 @@
-var kissDefs	= require("./kissdefs.js").kissDefs;
+var kissDefs	= require("./kissdefs.js");
 var util		= require("util");
 var events		= require("events");
 var SerialPort	= require("serialport").SerialPort;
 
 var kissTNC = function(args) {
 
-	events.EventEmitter.call(this);
-
 	var self = this;
+	events.EventEmitter.call(this);
 
 	var properties = {
 		'serialPort'	: 0,
@@ -224,8 +223,16 @@ var kissTNC = function(args) {
 		"open",
 		function() {
 			for(var a in args) {
-				if(a == "serialPort" || a == "baudRate" || typeof self[a] == "undefined")
+				if(	a == "serialPort"
+					||
+					a == "baudRate"
+					||
+					typeof self[a] == "undefined"
+					||
+					typeof self[a] == "function"
+				) {
 					continue;
+				}
 				self[a] = args[a];
 			}
 			self.emit("opened");
@@ -267,4 +274,4 @@ var kissTNC = function(args) {
 }
 util.inherits(kissTNC, events.EventEmitter);
 
-exports.kissTNC = kissTNC;
+exports = kissTNC;

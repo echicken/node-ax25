@@ -1,5 +1,5 @@
-var ax25Defs = require("./ax25defs.js").ax25Defs;
-var ax25Utils = require("./ax25Utils.js").ax25Utils;
+var ax25Defs = require("./ax25defs.js");
+var ax25Utils = require("./ax25Utils.js");
 
 var ax25Packet = function(frame) {
 	
@@ -471,4 +471,4 @@ var ax25Packet = function(frame) {
 	
 }
 
-exports.ax25Packet = ax25Packet;
+exports = ax25Packet;

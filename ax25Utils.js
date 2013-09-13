@@ -66,4 +66,4 @@ var ax25Utils = function() {
 
 }
 
-exports.ax25Utils = new ax25Utils;
+exports = new ax25Utils;
