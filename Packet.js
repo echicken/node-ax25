@@ -1,3 +1,5 @@
+var ax25 = require("./index.js");
+
 var Packet = function(frame) {
 	
 	var properties = {
