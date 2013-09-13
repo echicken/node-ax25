@@ -1,4 +1,3 @@
-var kissDefs	= require("./kissdefs.js");
 var util		= require("util");
 var events		= require("events");
 var SerialPort	= require("serialport").SerialPort;

@@ -38,7 +38,7 @@ var Session = function(args) {
 	this.__defineSetter__(
 		"remoteCallsign",
 		function(value) {
-			if(typeof value != "string" || !ax25.utils.testCallsign(value))
+			if(typeof value != "string" || !ax25.Utils.testCallsign(value))
 				throw "ax25.Session: invalid remoteCallsign assignment.";
 		}
 	);
@@ -53,7 +53,7 @@ var Session = function(args) {
 	this.__defineSetter__(
 		"localCallsign",
 		function(value) {
-			if(typeof value != "string" || !ax25Utils.testCallsign(value))
+			if(typeof value != "string" || !ax25.Utils.testCallsign(value))
 				throw "ax25.Session: invalid localCallsign assignment.";
 		}
 	);
@@ -70,11 +70,11 @@ var Session = function(args) {
 		function() {}
 	);
 
-	if(typeof args.frame != "undefined" && args.frame instanceof ax25.packet) {
-		this.remoteCallsign = packet.sourceCallsign;
-		this.remoteSSID = packet.sourceSSID;
-		this.localCallsign = packet.destinationCallsign;
-		this.localSSID = packet.destinationSSID;
+	if(typeof args.frame != "undefined" && args.frame instanceof ax25.Packet) {
+		this.remoteCallsign = args.frame.sourceCallsign;
+		this.remoteSSID = args.frame.sourceSSID;
+		this.localCallsign = args.frame.destinationCallsign;
+		this.localSSID = args.frame.destinationSSID;
 	} else {
 		for(var a in args) {
 			if(typeof self[a] == "undefined" || typeof self[a] == "function")
