@@ -274,4 +274,4 @@ var kissTNC = function(args) {
 }
 util.inherits(kissTNC, events.EventEmitter);
 
-module.exports = exports = kissTNC;
+module.exports = kissTNC;
