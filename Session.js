@@ -1,10 +1,7 @@
 var util		= require("util");
 var events		= require("events");
-var ax25Defs	= require("./ax25defs.js");
-var ax25Utils	= require("./ax25Utils.js");
-var ax25Packet	= require("./ax25Packet.js");
 
-var ax25Session = function(args) {
+var Session = function(args) {
 
 	var self = this;
 	events.EventEmitter.call(this);
@@ -41,8 +38,8 @@ var ax25Session = function(args) {
 	this.__defineSetter__(
 		"remoteCallsign",
 		function(value) {
-			if(typeof value != "string" || !ax25Utils.testCallsign(value))
-				throw "ax25Session: invalid remoteCallsign assignment.";
+			if(typeof value != "string" || !ax25.utils.testCallsign(value))
+				throw "ax25.Session: invalid remoteCallsign assignment.";
 		}
 	);
 
@@ -57,7 +54,7 @@ var ax25Session = function(args) {
 		"localCallsign",
 		function(value) {
 			if(typeof value != "string" || !ax25Utils.testCallsign(value))
-				throw "ax25Session: invalid localCallsign assignment.";
+				throw "ax25.Session: invalid localCallsign assignment.";
 		}
 	);
 
@@ -73,7 +70,7 @@ var ax25Session = function(args) {
 		function() {}
 	);
 
-	if(typeof args.frame != "undefined" && args.frame instanceof ax25Packet) {
+	if(typeof args.frame != "undefined" && args.frame instanceof ax25.packet) {
 		this.remoteCallsign = packet.sourceCallsign;
 		this.remoteSSID = packet.sourceSSID;
 		this.localCallsign = packet.destinationCallsign;
@@ -87,6 +84,6 @@ var ax25Session = function(args) {
 	}
 
 }
-util.inherits(ax25Session, events.EventEmitter);
+util.inherits(ax25.Session, events.EventEmitter);
 
-exports = ax25Session;
+module.exports = Session;

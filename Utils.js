@@ -1,4 +1,4 @@
-var ax25Utils = function() {
+var Utils = function() {
 
 	this.testCallsign = function(callsign) {
 		if(typeof callsign == "undefined" || callsign.length > 6)
@@ -66,4 +66,4 @@ var ax25Utils = function() {
 
 }
 
-exports = new ax25Utils;
+exports = new Utils;

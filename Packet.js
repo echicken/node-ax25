@@ -1,7 +1,4 @@
-var ax25Defs = require("./ax25defs.js");
-var ax25Utils = require("./ax25Utils.js");
-
-var ax25Packet = function(frame) {
+var Packet = function(frame) {
 	
 	var properties = {
 		'destinationCallsign'	: "",
@@ -15,15 +12,15 @@ var ax25Packet = function(frame) {
 		'type'					: 0,
 		'nr'					: 0,
 		'ns'					: 0,
-		'pid'					: ax25Defs.PID_NONE,
+		'pid'					: ax25.Defs.PID_NONE,
 		'info'					: []
 	};
 	
 	this.__defineGetter__(
 		"destinationCallsign",
 		function() {
-			if(!ax25Utils.testCallsign(properties.destinationCallsign))
-				throw "ax25Packet: Invalid destination callsign.";
+			if(!ax25.Utils.testCallsign(properties.destinationCallsign))
+				throw "ax25.Packet: Invalid destination callsign.";
 			return properties.destinationCallsign;
 		}
 	);
@@ -31,8 +28,8 @@ var ax25Packet = function(frame) {
 	this.__defineSetter__(
 		"destinationCallsign",
 		function(callsign) {
-			if(typeof callsign == "undefined" || !ax25Utils.testCallsign(callsign))
-				throw "ax25Packet: Invalid destination callsign.";
+			if(typeof callsign == "undefined" || !ax25.Utils.testCallsign(callsign))
+				throw "ax25.Packet: Invalid destination callsign.";
 			properties.destinationCallsign = callsign;
 		}
 	);
@@ -41,7 +38,7 @@ var ax25Packet = function(frame) {
 		"destinationSSID",
 		function() {
 			if(properties.destinationSSID < 0 || properties.destinationSSID > 15)
-				throw "ax25Packet: Invalid destination SSID.";
+				throw "ax25.Packet: Invalid destination SSID.";
 			return properties.destinationSSID;
 		}
 	);
@@ -50,7 +47,7 @@ var ax25Packet = function(frame) {
 		"destinationSSID",
 		function(ssid) {
 			if(typeof ssid != "number" || ssid < 0 || ssid > 15)
-				throw "ax25Packet: Invalid destination SSID.";
+				throw "ax25.Packet: Invalid destination SSID.";
 			properties.destinationSSID = ssid;
 		}
 	);
@@ -58,8 +55,8 @@ var ax25Packet = function(frame) {
 	this.__defineGetter__(
 		"sourceCallsign",
 		function() {
-			if(!ax25Utils.testCallsign(properties.sourceCallsign))
-				throw "ax25Packet: Invalid source callsign.";
+			if(!ax25.Utils.testCallsign(properties.sourceCallsign))
+				throw "ax25.Packet: Invalid source callsign.";
 			return properties.sourceCallsign;
 		}
 	);
@@ -67,8 +64,8 @@ var ax25Packet = function(frame) {
 	this.__defineSetter__(
 		"sourceCallsign",
 		function(callsign) {
-			if(typeof callsign == "undefined" || !ax25Utils.testCallsign(callsign))
-				throw "ax25Packet: Invalid source callsign.";
+			if(typeof callsign == "undefined" || !ax25.Utils.testCallsign(callsign))
+				throw "ax25.Packet: Invalid source callsign.";
 			properties.sourceCallsign = callsign;
 		}
 	);
@@ -77,7 +74,7 @@ var ax25Packet = function(frame) {
 		"sourceSSID",
 		function() {
 			if(properties.sourceSSID < 0 || properties.sourceSSID > 15)
-				throw "ax25Packet: Invalid source SSID.";
+				throw "ax25.Packet: Invalid source SSID.";
 			return properties.sourceSSID;
 		}
 	);
@@ -86,7 +83,7 @@ var ax25Packet = function(frame) {
 		"sourceSSID",
 		function(ssid) {
 			if(typeof ssid != "number" || ssid < 0 || ssid > 15)
-				throw "ax25Packet: Invalid source SSID.";
+				throw "ax25.Packet: Invalid source SSID.";
 			properties.sourceSSID = ssid;
 		}
 	);
@@ -101,13 +98,13 @@ var ax25Packet = function(frame) {
 	this.__defineSetter__(
 		"repeaterPath",
 		function(repeaters) {
-			var msg = "ax25Packet: Repeater path must be array of valid {callsign, ssid} objects.";
+			var msg = "ax25.Packet: Repeater path must be array of valid {callsign, ssid} objects.";
 			if(typeof repeaters == "undefined" || !(repeaters instanceof Array))
 				throw msg;
 			for(var r = 0; r < repeaters.length; r++) {
 				if(	!repeaters[r].hasOwnProperty('callsign')
 					||
-					!ax25Utils.testCallsign(repeaters[r].callsign)
+					!ax25.Utils.testCallsign(repeaters[r].callsign)
 				) {
 					throw msg;
 				}
@@ -135,7 +132,7 @@ var ax25Packet = function(frame) {
 		"pollFinal",
 		function(pollFinal) {
 			if(typeof pollFinal != "boolean")
-				throw "ax25Packet: Invalid poll/final bit assignment (should be boolean.)";
+				throw "ax25.Packet: Invalid poll/final bit assignment (should be boolean.)";
 			properties.pollFinal = (pollFinal) ? 1 : 0;
 		}
 	);
@@ -151,7 +148,7 @@ var ax25Packet = function(frame) {
 		"command",
 		function(command) {
 			if(typeof command != "boolean")
-				throw "ax25Packet: Invalid command bit assignment (should be boolean.)";
+				throw "ax25.Packet: Invalid command bit assignment (should be boolean.)";
 			properties.command = (command) ? 1 : 0;
 			properties.response = (command) ? 0 : 1;
 		}
@@ -168,7 +165,7 @@ var ax25Packet = function(frame) {
 		"response",
 		function(response) {
 			if(typeof response != "boolean")
-				throw "ax25Packet: Invalid response bit assignment (should be boolean.)";
+				throw "ax25.Packet: Invalid response bit assignment (should be boolean.)";
 			properties.response = (response) ? 1 : 0;
 			properties.command = (response) ? 0 : 1;
 		}
@@ -183,13 +180,13 @@ var ax25Packet = function(frame) {
 		"control",
 		function() {
 			var control = properties.type;
-			if(	properties.type == ax25Defs.I_FRAME
+			if(	properties.type == ax25.Defs.I_FRAME
 				||
-				(properties.type&ax25Defs.U_FRAME) == ax25Defs.S_FRAME
+				(properties.type&ax25.Defs.U_FRAME) == ax25.Defs.S_FRAME
 			) {
 				control|=(properties.nr<<5);
 			}
-			if(properties.type == ax25Defs.I_FRAME)
+			if(properties.type == ax25.Defs.I_FRAME)
 				control|=(properties.ns<<1);
 			if(this.pollFinal)
 				control|=(properties.pollFinal<<4);
@@ -208,7 +205,7 @@ var ax25Packet = function(frame) {
 		"type",
 		function(type) {
 			if(typeof type != "number")
-				throw "ax25Packet: Invalid frame type assignment.";
+				throw "ax25.Packet: Invalid frame type assignment.";
 			properties.type = type;
 		}
 	);
@@ -224,7 +221,7 @@ var ax25Packet = function(frame) {
 		"nr",
 		function(nr) {
 			if(typeof nr != "number" || nr < 0 || nr > 7)
-				throw "ax25Packet: Invalid N(R) assignment.";
+				throw "ax25.Packet: Invalid N(R) assignment.";
 			properties.nr = nr;
 		}
 	);
@@ -240,7 +237,7 @@ var ax25Packet = function(frame) {
 		"ns",
 		function(ns) {
 			if(typeof ns != "number" || ns < 0 || ns > 7)
-				throw "ax25Packet: Invalid N(S) assignment.";
+				throw "ax25.Packet: Invalid N(S) assignment.";
 			properties.ns = ns;
 		}
 	);
@@ -256,14 +253,14 @@ var ax25Packet = function(frame) {
 		"pid",
 		function(pid) {
 			if(typeof pid != "number")
-				throw "ax25Packet: Invalid PID field assignment.";
-			if(	properties.type == ax25Defs.I_FRAME
+				throw "ax25.Packet: Invalid PID field assignment.";
+			if(	properties.type == ax25.Defs.I_FRAME
 				||
-				properties.type == ax25Defs.U_FRAME_UI
+				properties.type == ax25.Defs.U_FRAME_UI
 			) {
 				properties.pid = pid;
 			} else {
-				throw "ax25Packet: PID can only be set on I and UI frames.";
+				throw "ax25.Packet: PID can only be set on I and UI frames.";
 			}
 		}
 	);
@@ -282,18 +279,18 @@ var ax25Packet = function(frame) {
 		"info",
 		function(info) {
 			if(typeof info == "undefined")
-				throw "ax25Packet: Invalid information field assignment.";
-			if(properties.type == ax25Defs.I_FRAME || properties.type == ax25Defs.U_FRAME)
+				throw "ax25.Packet: Invalid information field assignment.";
+			if(properties.type == ax25.Defs.I_FRAME || properties.type == ax25.Defs.U_FRAME)
 				properties.info = info;
 			else
-				throw "ax25Defs.Packet: Info field can only be set on I and UI frames.";
+				throw "ax25.Defs.Packet: Info field can only be set on I and UI frames.";
 		}
 	);
 	
 	this.__defineGetter__(
 		"infoString",
 		function() {
-			return ax25Utils.byteArrayToString(properties.info);
+			return ax25.Utils.byteArrayToString(properties.info);
 		}
 	);
 	
@@ -301,31 +298,31 @@ var ax25Packet = function(frame) {
 		"infoString",
 		function(info) {
 			if(typeof info != "string")
-				throw "ax25Packet.infoString: type mismatch.";
-			properties.info = ax25Utils.stringToByteArray(info);
+				throw "ax25.Packet.infoString: type mismatch.";
+			properties.info = ax25.Utils.stringToByteArray(info);
 		}
 	);
 	
 	this.disassemble = function(frame) {
 
 		if(frame.length < 15)
-			throw "ax25Packet.disassemble: Frame does not meet minimum length.";
+			throw "ax25.Packet.disassemble: Frame does not meet minimum length.";
 
 		// Address Field: Destination subfield
 		var field = frame.splice(0, 6);
 		for(var f = 0; f < field.length; f++)
 			properties.destinationCallsign += String.fromCharCode(field[f]>>1);
 		field = frame.shift();
-		properties.destinationSSID = (field&ax25Defs.A_SSID)>>1;
-		properties.command = (field&ax25Defs.A_CRH)>>7;
+		properties.destinationSSID = (field&ax25.Defs.A_SSID)>>1;
+		properties.command = (field&ax25.Defs.A_CRH)>>7;
 		
 		// Address Field: Source subfield
 		field = frame.splice(0, 6);
 		for(var f = 0; f < field.length; f++)
 			properties.sourceCallsign += String.fromCharCode(field[f]>>1);
 		field = frame.shift();
-		properties.sourceSSID = (field&ax25Defs.A_SSID)>>1;
-		properties.response = (field&ax25Defs.A_CRH)>>7;
+		properties.sourceSSID = (field&ax25.Defs.A_SSID)>>1;
+		properties.response = (field&ax25.Defs.A_CRH)>>7;
 
 		// Address Field: Repeater path
 		while(field&1 == 0) {
@@ -337,30 +334,30 @@ var ax25Packet = function(frame) {
 			for(var f = 0; f < field.length; f++)
 				repeater.callsign += String.fromCharCode(field[f]>>1);
 			field = frame.shift();
-			repeater.ssid = (field&ax25Defs.A_SSID)>>1;
+			repeater.ssid = (field&ax25.Defs.A_SSID)>>1;
 			properties.repeaterPath.push(repeater);
 		}
 		
 		// Control field
 		var control = frame.shift();
-		properties.pollFinal = (control&ax25Defs.PF)>>4;
-		if((control&ax25Defs.U_FRAME) == ax25Defs.U_FRAME) {
-			properties.type = control&ax25Defs.U_FRAME_MASK;
-			if(properties.type == ax25Defs.U_FRAME_UI) {
+		properties.pollFinal = (control&ax25.Defs.PF)>>4;
+		if((control&ax25.Defs.U_FRAME) == ax25.Defs.U_FRAME) {
+			properties.type = control&ax25.Defs.U_FRAME_MASK;
+			if(properties.type == ax25.Defs.U_FRAME_UI) {
 				properties.pid = frame.shift();
 				properties.info = frame;
 			}
-		} else if((control&ax25Defs.U_FRAME) == ax25Defs.S_FRAME) {
-			properties.type = control&ax25Defs.S_FRAME_MASK;
-			properties.nr = (control&ax25Defs.NR)>>5;
-		} else if((control&1) == ax25Defs.I_FRAME) {
-			properties.type = ax25Defs.I_FRAME;
-			properties.nr = (control&ax25Defs.NR)>>5;
-			properties.ns = (control&ax25Defs.NS)>>1;
+		} else if((control&ax25.Defs.U_FRAME) == ax25.Defs.S_FRAME) {
+			properties.type = control&ax25.Defs.S_FRAME_MASK;
+			properties.nr = (control&ax25.Defs.NR)>>5;
+		} else if((control&1) == ax25.Defs.I_FRAME) {
+			properties.type = ax25.Defs.I_FRAME;
+			properties.nr = (control&ax25.Defs.NR)>>5;
+			properties.ns = (control&ax25.Defs.NS)>>1;
 			properties.pid = frame.shift();
 			properties.info = frame;
 		} else {
-			throw "ax25Packet.dissassemble: Invalid packet.";
+			throw "ax25.Packet.dissassemble: Invalid packet.";
 		}
 		
 	}
@@ -369,10 +366,10 @@ var ax25Packet = function(frame) {
 	
 		// Try to catch a few obvious derps
 		if(properties.destinationCallsign.length == 0)
-			throw "ax25Packet: Destination callsign not set.";
+			throw "ax25.Packet: Destination callsign not set.";
 		if(properties.sourceCallsign.length == 0)
-			throw "ax25Packet: Source callsign not set.";
-		if(	properties.type == ax25Defs.I_FRAME
+			throw "ax25.Packet: Source callsign not set.";
+		if(	properties.type == ax25.Defs.I_FRAME
 			&&
 			(	!properties.hasOwnProperty('pid')
 				||
@@ -381,7 +378,7 @@ var ax25Packet = function(frame) {
 				properties.info.length == 0
 			)
 		) {
-			throw "ax25Packet: I or UI frame with no payload.";
+			throw "ax25.Packet: I or UI frame with no payload.";
 		}
 		
 		var frame = [];
@@ -443,9 +440,9 @@ var ax25Packet = function(frame) {
 		// PID field (I and UI frames only)
 		if(	properties.pid
 			&&
-			(	properties.type == ax25Defs.I_FRAME
+			(	properties.type == ax25.Defs.I_FRAME
 				||
-				properties.type == ax25Defs.U_FRAME_UI
+				properties.type == ax25.Defs.U_FRAME_UI
 			)
 		) {
 			frame.push(properties.pid);
@@ -454,9 +451,9 @@ var ax25Packet = function(frame) {
 		// Info field (I and UI frames only)
 		if(	properties.info.length > 0
 			&&
-			(	properties.type == ax25Defs.I_FRAME
+			(	properties.type == ax25.Defs.I_FRAME
 				||
-				properties.type == ax25Defs.U_FRAME_UI
+				properties.type == ax25.Defs.U_FRAME_UI
 			)
 		) {
 			for(var i = 0; i < properties.info.length; i++)
@@ -471,4 +468,4 @@ var ax25Packet = function(frame) {
 	
 }
 
-exports = ax25Packet;
+exports = Packet;
