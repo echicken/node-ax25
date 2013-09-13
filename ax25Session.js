@@ -80,7 +80,7 @@ var ax25Session = function(args) {
 		this.localSSID = packet.destinationSSID;
 	} else {
 		for(var a in args) {
-			if(typeof self[a] == undefined || typeof self[a] == function)
+			if(typeof self[a] == "undefined" || typeof self[a] == "function")
 				continue;
 			self[a] = args[a];
 		}
