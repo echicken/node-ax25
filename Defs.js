@@ -48,4 +48,4 @@ var Defs = {
 	PID_ESC			: 255											// Escape character. Next octet contains more Level 3 protocol information.
 }
 
-exports = Defs;
+module.exports = Defs;
