@@ -19,4 +19,4 @@ var kissDefs = {
 
 }
 
-exports = kissDefs;
+module.exports = kissDefs;
