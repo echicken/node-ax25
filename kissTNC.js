@@ -3,15 +3,7 @@ var util		= require("util");
 var events		= require("events");
 var SerialPort	= require("serialport").SerialPort;
 
-var kissTNC = function(
-	serialPort,		// eg. "COM3" or "/dev/ttyUSB0" (Required)
-	baudRate,		// eg. 9600 (rate for serial comms with the TNC) (Required)
-	txDelay,		// In milliseconds (Optional)
-	persistence,	// eg. .25, a number between zero and 1 (Optional)
-	slotTime,		// In milliseconds (Optional)
-	txTail,			// In milliseconds (Optional, deprecated)
-	fullDuplex		// Boolean (Optional)
-) {
+var kissTNC = function(args) {
 
 	events.EventEmitter.call(this);
 
@@ -170,8 +162,8 @@ var kissTNC = function(
 		}
 	);
 	
-	this.serialPort		= serialPort;
-	this.baudRate		= baudRate;
+	this.serialPort		= args.serialPort;
+	this.baudRate		= args.baudRate;
 	
 	var dataBuffer = [];
 		
@@ -231,16 +223,11 @@ var kissTNC = function(
 	serialHandle.on(
 		"open",
 		function() {
-			if(typeof txDelay != "undefined")
-				self.txDelay = txDelay;
-			if(typeof persistence != "undefined")
-				self.persistence = persistence;
-			if(typeof slotTime != "undefined")
-				self.slotTIme = slotTime;
-			if(typeof txTail != "undefined")
-				self.txTail = txTail;
-			if(typeof fullDupled != "undefined")
-				self.fullDuplex = fullDuplex;
+			for(var a in args) {
+				if(a == "serialPort" || a == "baudRate" || typeof self[a] == "undefined")
+					continue;
+				self[a] = args[a];
+			}
 			self.emit("opened");
 		}
 	);

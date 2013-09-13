@@ -1,7 +1,7 @@
 var ax25Defs = require("./ax25defs.js").ax25Defs;
 var ax25Utils = require("./ax25Utils.js").ax25Utils;
 
-var ax25Session = function(inbound, receiverCallsign, receiverSSID, packet) {
+var ax25Session = function(args) {
 
 	var properties = {
 		'ID'					: 0,
@@ -87,6 +87,19 @@ var ax25Session = function(inbound, receiverCallsign, receiverSSID, packet) {
 				throw "ax25Session: invalid localCallsign assignment.";
 		}
 	);
+
+	this.__defineGetter__(
+		"connected",
+		function() {
+			return properties.connected;
+		}
+	);
+
+	this.__defineSetter__(
+		"connected",
+		function() {}
+	);
+
 }
 
 exports.ax25Session = ax25Session;
