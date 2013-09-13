@@ -84,6 +84,6 @@ var Session = function(args) {
 	}
 
 }
-util.inherits(ax25.Session, events.EventEmitter);
+util.inherits(Session, events.EventEmitter);
 
 module.exports = Session;
