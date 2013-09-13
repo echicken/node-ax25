@@ -16,30 +16,30 @@ If you intend to interface with a conventional KISS TNC, the node-serialport mod
 
 ---
 
-####kissTNC
+####ax25.kissTNC
 
 ```js
-var tnc = new kissTNC(
-	serialPort,
-	baudRate,
-	callSign,
-	SSID,
-	txDelay,
-	persistence,
-	slotTime,
-	txTail,
-	fullDuplex
+var tnc = new ax25.kissTNC(
+	{	serialPort : "COM3",
+		baudRate : 9600,
+		txDelay : 500,
+		persistence : .25,
+		slotTime : 500,
+		txTail : 100,
+		fullDuplex : false
+	}
 );
 ```
 
-The *serialPort* and *baudRate* arguments are required.  The rest are optional, and can be set after the fact.
+The *serialPort* and *baudRate* argument properties are required.  The rest are optional, and can be set after the fact.
 
 ```js
-var kissTNC = require("ax25").kissTNC;
+var ax25 = require("ax25");
 
-var tnc = new kissTNC(
-	"COM3",	// Serial device, eg. "COM3" or "/dev/ttyUSB0"
-	9600	// Serial comms rate between computer and TNC
+var tnc = new ax25.kissTNC(
+	{	serialPort : "COM3",	// Serial device, eg. "COM3" or "/dev/ttyUSB0"
+		baudRate : 9600			// Serial comms rate between computer and TNC
+	}
 );
 
 tnc.on(
@@ -79,26 +79,24 @@ tnc.on(
 
 #####Methods:
 
-* **send(frame)** - Sends an AX.25 frame to the TNC to be sent out over the air.  (*frame* must be an array of bytes, representing an AX.25 frame less the flags and FCS, eg. the return value of *ax25Packet.assemble()*.)
+* **send(frame)** - Sends an AX.25 frame to the TNC to be sent out over the air.  (*frame* must be an array of bytes, representing an AX.25 frame less the flags and FCS, eg. the return value of *ax25.Packet.assemble()*.)
 * **setHardware(value)** - Most people won't need to use this ... consult your TNC's documentation.
 * **close()** - Close the connection to the TNC.
 * **exitKISS()** - Bring the TNC out of KISS mode (if your TNC has a terminal mode.)
 
-####ax25Packet
+####ax25.Packet
 
 ```js
-var packet = new ax25Packet(frame);
+var packet = new ax25.Packet(frame);
 ```
 
-The *frame* argument would be an array of unsigned ints, such as provided by the kissTNC's *frame* event.  If *frame* is not supplied, the objects properties will be populated with default values (if you're creating an outgoing packet, you can assign whatever values you want to those properties before calling *ax25packet*.assemble().)
+The *frame* argument would be an array of unsigned ints, such as provided by the ax25.kissTNC's *frame* event.  If *frame* is not supplied, the objects properties will be populated with default values (if you're creating an outgoing packet, you can assign whatever values you want to those properties before calling *ax25.packet*.assemble().)
 
 ```js
 var util = require("util");
-var kissTNC = require("ax25").kissTNC;
-var ax25Packet = require("ax25").ax25Packet;
-var ax25 = require("ax25").ax25;
+var ax25 = require("ax25");
 
-var tnc = new kissTNC("COM3", 9600);
+var tnc = new ax25.kissTNC("COM3", 9600);
 
 tnc.on(
 	"error",
@@ -117,7 +115,7 @@ tnc.on(
 tnc.on(
 	"frame",
 	function(frame) {
-		var packet = new ax25Packet(frame);
+		var packet = new ax25.Packet(frame);
 		console.log(
 			util.format(
 				"Packet seen from %s-%s to %s-%s.",
@@ -133,7 +131,7 @@ tnc.on(
 );
 
 var beacon = function() {
-	var packet = new ax25Packet();
+	var packet = new ax25.Packet();
 	packet.sourceCallsign = "MYCALL";
 	packet.destinationCallsign = "BEACON";
 	packet.type = ax25.U_FRAME_UI;
@@ -165,5 +163,5 @@ setInterval(beacon, 30000); // Beacon every 30 seconds - excessive!
 
 #####Methods
 
-* **disassemble(frame)** - Where *frame* is an array of numbers representing an AX.25 frame (eg. the value provided by the kissTNC *frame* event,) disassemble *frame* and populate the above properties with the values found therein. (Note: if ax25Packet is instantiated with a *frame* argument, this will happen automatically.) (Void)
-* **assemble()** - When creating an outgoing frame, make a new ax25Packet object, populate its properties as desired, then call *ax25Packet*.assemble(), which will return an array of numbers representing an AX.25 frame (which can be supplied to kissTNC.send(frame).) (Array)
+* **disassemble(frame)** - Where *frame* is an array of numbers representing an AX.25 frame (eg. the value provided by the ax25.kissTNC *frame* event,) disassemble *frame* and populate the above properties with the values found therein. (Note: if ax25.Packet is instantiated with a *frame* argument, this will happen automatically.) (Void)
+* **assemble()** - When creating an outgoing frame, make a new ax25.Packet object, populate its properties as desired, then call *ax25.Packet*.assemble(), which will return an array of numbers representing an AX.25 frame (which can be supplied to ax25.kissTNC.send(frame).) (Array)
