@@ -1,6 +1,6 @@
 var ax25 = require("./index.js");
 
-var Packet = function(frame) {
+var Packet = function(args) {
 	
 	var properties = {
 		'destinationCallsign'	: "",
@@ -10,7 +10,6 @@ var Packet = function(frame) {
 		'repeaterPath'			: [],
 		'pollFinal'				: 0,
 		'command'				: 0,
-		'response'				: 0,
 		'type'					: 0,
 		'nr'					: 0,
 		'ns'					: 0,
@@ -153,23 +152,6 @@ var Packet = function(frame) {
 				throw "ax25.Packet: Invalid command bit assignment (should be boolean.)";
 			properties.command = (command) ? 1 : 0;
 			properties.response = (command) ? 0 : 1;
-		}
-	);
-	
-	this.__defineGetter__(
-		"response",
-		function() {
-			return (properties.response == 1) ? true : false;
-		}
-	);
-	
-	this.__defineSetter__(
-		"response",
-		function(response) {
-			if(typeof response != "boolean")
-				throw "ax25.Packet: Invalid response bit assignment (should be boolean.)";
-			properties.response = (response) ? 1 : 0;
-			properties.command = (response) ? 0 : 1;
 		}
 	);
 	
@@ -465,8 +447,15 @@ var Packet = function(frame) {
 		return frame;
 	}
 	
-	if(typeof frame != "undefined")
-		this.disassemble(frame);
+	if(typeof args.frame != "undefined") {
+		this.disassemble(args.frame);
+	} else {
+		for(var a in args) {
+			if(typeof this[a] == "undefined" || typeof args[a] == "function" || a == "frame")
+				continue;
+			this[a] = args[a];
+		}
+	}
 	
 }
 
