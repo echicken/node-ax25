@@ -71,17 +71,54 @@ var Session = function(args) {
 		function() {}
 	);
 
-	if(typeof args.frame != "undefined" && args.frame instanceof ax25.Packet) {
-		this.remoteCallsign = args.frame.sourceCallsign;
-		this.remoteSSID = args.frame.sourceSSID;
-		this.localCallsign = args.frame.destinationCallsign;
-		this.localSSID = args.frame.destinationSSID;
+	if(typeof args.packet != "undefined" && args.packet instanceof ax25.Packet) {
+		this.remoteCallsign = args.packet.sourceCallsign;
+		this.remoteSSID = args.packet.sourceSSID;
+		this.localCallsign = args.packet.destinationCallsign;
+		this.localSSID = args.packet.destinationSSID;
 	} else {
 		for(var a in args) {
 			if(typeof self[a] == "undefined" || typeof self[a] == "function")
 				continue;
 			self[a] = args[a];
 		}
+	}
+
+	this.receive = function(packet) {
+
+	}
+
+	var send = function(packet) {
+		if(typeof packet == undefined || !(packet instanceof ax25.Packet))
+			throw "ax25.Session: Internal error (private function 'send' - invalid packet.)";
+		self.emit("frame", packet.assemble());
+	}
+
+	this.send = function(data) {
+		if(!(data instanceof Array))
+			throw "ax25.Session.send: argument must be array.";
+		var packetArgs = {
+			'destinationCallsign'	: self.remoteCallsign,
+			'destinationSSID'		: self.remoteSSID,
+			'sourceCallsign'		: self.localCallsign,
+			'sourceSSID'			: self.localSSID,
+			'repeaterPath'			: self.repeaterPath,
+			'pollFinal'				: false,
+			'command'				: true,
+			'type'					: ax25.Defs.I_FRAME,
+			'nr'					: self.receiveState,
+			'ns'					: self.sendState,
+			'pid'					: ax25.Defs.PID_NONE,
+			'info'					: data
+		};
+		var packet = new ax25.Packet(packetArgs);
+		send(packet);
+	}
+
+	this.sendString = function(str) {
+		if(typeof str != "string")
+			throw "ax25.Session.sendString: non-string or no data provided.";
+		self.send(ax25.Util.stringToByteArray(str));
 	}
 
 }
