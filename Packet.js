@@ -447,11 +447,9 @@ var Packet = function(args) {
 		return frame;
 	}
 
-	if(typeof args != "object") {
-		throw "ax25.Packet: What, no arguments?";
-	} else if(typeof args.frame != "undefined") {
+	if(typeof args != "undefined" && typeof args.frame != "undefined") {
 		this.disassemble(args.frame);
-	} else {
+	} else if(typeof args != "undefined") {
 		for(var a in args) {
 			if(typeof this[a] == "undefined" || typeof args[a] == "function" || a == "frame")
 				continue;

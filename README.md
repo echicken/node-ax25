@@ -87,10 +87,36 @@ tnc.on(
 ####ax25.Packet
 
 ```js
-var packet = new ax25.Packet(frame);
+var packet = new ax25.Packet({ 'frame' : frame });
+```
+*or*
+```js
+var packet = new ax25.Packet(
+	{	'destinationCallsign'	: "VE3XEC",
+		'destinationSSID'		: 1,
+		'sourceCallsign'		: "KB1YFO",
+		'sourceSSID'			: 0,
+		'repeaterPath'			: [
+			{ 'callsign' : "VE7RRX", 'ssid' : 7 },
+			{ 'callsign' : "K6BSD", 'ssid' : 2 },
+			{ 'callsign' : "WX6YYZ", 'ssid' : 8 },
+			{ 'callsign' : "KF5PFU", 'ssid' : 3 },
+			{ 'callsign' : "KB1YFO", 'ssid' : 10 }
+		],
+		'pollFinal'				: true,
+		'command'				: true,
+		'type'					: ax25.Defs.I_FRAME,
+		'nr'					: 1,
+		'ns'					: 3,
+		'pid'					: ax25.Defs.PID_NONE,
+		'infoString'			: "Your mother."
+	}
+);
 ```
 
-The *frame* argument would be an array of unsigned ints, such as provided by the ax25.kissTNC's *frame* event.  If *frame* is not supplied, the objects properties will be populated with default values (if you're creating an outgoing packet, you can assign whatever values you want to those properties before calling *ax25.packet*.assemble().)
+In the first example, the argument's *frame* property would be an array of unsigned ints, such as provided by the ax25.kissTNC's *frame* event.
+
+The second example shows how you can assign values to all of the *ax25.Packet* object's properties upon instantiation.  If no argument is provided, these properties will be set to their default values, and you should set them as needed before calling *ax25.Packet*.assemble().
 
 ```js
 var util = require("util");
@@ -115,7 +141,7 @@ tnc.on(
 tnc.on(
 	"frame",
 	function(frame) {
-		var packet = new ax25.Packet(frame);
+		var packet = new ax25.Packet({ 'frame' : frame });
 		console.log(
 			util.format(
 				"Packet seen from %s-%s to %s-%s.",
@@ -131,11 +157,13 @@ tnc.on(
 );
 
 var beacon = function() {
-	var packet = new ax25.Packet();
-	packet.sourceCallsign = "MYCALL";
-	packet.destinationCallsign = "BEACON";
-	packet.type = ax25.U_FRAME_UI;
-	packet.infoString = "Hello world!";
+	var packet = new ax25.Packet(
+		{	sourceCallsign : "MYCALL",
+			destinationCallsign : "BEACON",
+			type : ax25.U_FRAME_UI,
+			infoString : "Hello world!"
+		}
+	);
 	var frame = packet.assemble();
 	tnc.send(frame);
 	console.log("Beacon sent.");
