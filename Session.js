@@ -147,7 +147,6 @@ var Session = function(args) {
 					} // Else, fall through to default
 					
 				case ax25.Defs.U_FRAME_UI:
-					buffers.receive.push(packet.info);
 					if(!packet.pollFinal) {
 						response = false;
 						break;
@@ -170,7 +169,7 @@ var Session = function(args) {
 	}
 
 	if(typeof args.packet != "undefined" && args.packet instanceof ax25.Packet) {
-		this.remoteCallsign = args.packet.sourceCallsign;
+		this.remoteCallsign = args.packet.sourceCallsign.toString();
 		this.remoteSSID = args.packet.sourceSSID;
 		this.localCallsign = args.packet.destinationCallsign;
 		this.localSSID = args.packet.destinationSSID;
