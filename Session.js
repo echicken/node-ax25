@@ -163,7 +163,7 @@ var Session = function(args) {
 
 		}
 
-		if(response)
+//		if(response)
 			send(response);
 
 	}
