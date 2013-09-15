@@ -75,11 +75,7 @@ var Session = function(args) {
 		console.log("Session send() called.");
 		if(typeof packet == undefined || !(packet instanceof ax25.Packet))
 			throw "ax25.Session: Internal error (private function 'send' - invalid packet.)";
-//		self.emit("frame", packet.assemble());
-		var cunt = packet.assemble();
-		self.emit("frame", cunt);
-		console.log("Responding");
-		console.log(packet);
+		self.emit("frame", packet.assemble());
 	}
 
 	this.send = function(data) {
@@ -110,8 +106,6 @@ var Session = function(args) {
 	}
 
 	this.receive = function(packet) {
-
-		console.log("Session receiving packet.");
 
 //		properties.repeaterPath = [];
 //		for(var r = packet.repeaterPath.length - 1; r >= 0; r--) {
@@ -168,23 +162,11 @@ var Session = function(args) {
 
 		}
 
-//		if(response)
-			console.log("Session responding to packet.");
+		if(response instanceof ax25.Packet)
 			send(response);
 
 	}
 
-	if(typeof args.packet != "undefined" && args.packet instanceof ax25.Packet) {
-		properties.remoteCallsign = args.packet.sourceCallsign;
-		properties.remoteSSID = args.packet.sourceSSID;
-		properties.localCallsign = args.packet.destinationCallsign;
-		properties.localSSID = args.packet.destinationSSID;
-		this.receive(args.packet);
-	} else {
-
-	}
-
-	this.emit("ready", "READY");
 
 }
 util.inherits(Session, events.EventEmitter);
