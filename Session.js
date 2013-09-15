@@ -72,6 +72,7 @@ var Session = function(args) {
 	);
 
 	var send = function(packet) {
+		console.log("Session send() called.");
 		if(typeof packet == undefined || !(packet instanceof ax25.Packet))
 			throw "ax25.Session: Internal error (private function 'send' - invalid packet.)";
 		self.emit("frame", packet.assemble());
@@ -107,6 +108,8 @@ var Session = function(args) {
 	}
 
 	this.receive = function(packet) {
+
+		console.log("Session receiving packet.");
 
 //		properties.repeaterPath = [];
 //		for(var r = packet.repeaterPath.length - 1; r >= 0; r--) {
@@ -165,6 +168,7 @@ var Session = function(args) {
 
 //		if(response)
 			send(response);
+			console.log("Session responding to packet.");
 
 	}
 
