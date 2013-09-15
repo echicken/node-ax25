@@ -135,14 +135,12 @@ var Session = function(args) {
 			switch(packet.type) {
 			
 				case ax25.Defs.U_FRAME_SABM:
-					resetVariables();
 					properties.connected = true;
 					response.type = ax25.Defs.U_FRAME_UA;
 					break;
 					
 				case ax25.Defs.U_FRAME_UA:
 					if(properties.connecting) {
-						resetVariables();
 						properties.connected = true;
 						response = false;
 						break;
