@@ -30,6 +30,23 @@ var Session = function(args) {
 	}
 
 	this.__defineGetter__(
+		"initialized",
+		function() {
+			if(properties.remoteCallsign == "")
+				return false;
+			if(properties.localCallsign == "")
+				return false;
+			return true;
+		}
+	);
+
+	this.__defineSetter__(
+		"initialized",
+		function() {
+		}
+	);
+
+	this.__defineGetter__(
 		"remoteCallsign",
 		function() {
 			return properties.remoteCallsign;
@@ -106,6 +123,13 @@ var Session = function(args) {
 	}
 
 	this.receive = function(packet) {
+
+		if(!self.initialized) {
+			properties.remoteCallsign = packet.sourceCallsign;
+			properties.remoteSSID = packet.sourceSSID;
+			properties.localCallsign = packet.destinationCallsign;
+			properties.localSSID = packet.destinationSSID;
+		}
 
 //		properties.repeaterPath = [];
 //		for(var r = packet.repeaterPath.length - 1; r >= 0; r--) {
