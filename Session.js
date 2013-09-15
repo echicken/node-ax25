@@ -75,7 +75,9 @@ var Session = function(args) {
 		console.log("Session send() called.");
 		if(typeof packet == undefined || !(packet instanceof ax25.Packet))
 			throw "ax25.Session: Internal error (private function 'send' - invalid packet.)";
-		self.emit("frame", packet.assemble());
+//		self.emit("frame", packet.assemble());
+		var cunt = packet.assemble();
+		self.emit("frame", cunt);
 		console.log("Responding");
 		console.log(packet);
 	}
