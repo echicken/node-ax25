@@ -71,19 +71,6 @@ var Session = function(args) {
 		function() {}
 	);
 
-	if(typeof args.packet != "undefined" && args.packet instanceof ax25.Packet) {
-		this.remoteCallsign = args.packet.sourceCallsign;
-		this.remoteSSID = args.packet.sourceSSID;
-		this.localCallsign = args.packet.destinationCallsign;
-		this.localSSID = args.packet.destinationSSID;
-	} else {
-		for(var a in args) {
-			if(typeof self[a] == "undefined" || typeof self[a] == "function")
-				continue;
-			self[a] = args[a];
-		}
-	}
-
 	var send = function(packet) {
 		if(typeof packet == undefined || !(packet instanceof ax25.Packet))
 			throw "ax25.Session: Internal error (private function 'send' - invalid packet.)";
@@ -184,8 +171,19 @@ var Session = function(args) {
 
 	}
 
-	if(typeof args.packet != "undefined" && args.packet instanceof ax25.Packet)
+	if(typeof args.packet != "undefined" && args.packet instanceof ax25.Packet) {
+		this.remoteCallsign = args.packet.sourceCallsign;
+		this.remoteSSID = args.packet.sourceSSID;
+		this.localCallsign = args.packet.destinationCallsign;
+		this.localSSID = args.packet.destinationSSID;
 		this.receive(args.packet);
+	} else {
+		for(var a in args) {
+			if(typeof self[a] == "undefined" || typeof self[a] == "function")
+				continue;
+			self[a] = args[a];
+		}
+	}
 
 }
 util.inherits(Session, events.EventEmitter);
