@@ -182,6 +182,9 @@ var Session = function(args) {
 
 	}
 
+	if(typeof args.packet != "undefined" && args.packet instanceof ax25.Packet)
+		this.receive(args.packet);
+
 }
 util.inherits(Session, events.EventEmitter);
 
