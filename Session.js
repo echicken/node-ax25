@@ -147,13 +147,13 @@ var Session = function(args) {
 		
 			switch(packet.type) {
 			
-				case U_FRAME_SABM:
+				case ax25.Defs.U_FRAME_SABM:
 					resetVariables();
 					properties.connected = true;
-					response.type = U_FRAME_UA;
+					response.type = ax25.Defs.U_FRAME_UA;
 					break;
 					
-				case U_FRAME_UA:
+				case ax25.Defs.U_FRAME_UA:
 					if(properties.connecting) {
 						resetVariables();
 						properties.connected = true;
@@ -161,7 +161,7 @@ var Session = function(args) {
 						break;
 					} // Else, fall through to default
 					
-				case U_FRAME_UI:
+				case ax25.Defs.U_FRAME_UI:
 					buffers.receive.push(packet.info);
 					if(!packet.pollFinal) {
 						response = false;
@@ -169,7 +169,7 @@ var Session = function(args) {
 					} // Else, fall through to default
 			
 				default:
-					response.type = U_FRAME_DM;
+					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = true;
 					break;
 					
