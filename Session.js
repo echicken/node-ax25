@@ -175,11 +175,7 @@ var Session = function(args) {
 		this.localSSID = args.packet.destinationSSID;
 		this.receive(args.packet);
 	} else {
-		for(var a in args) {
-			if(typeof self[a] == "undefined" || typeof self[a] == "function")
-				continue;
-			self[a] = args[a];
-		}
+
 	}
 
 }
