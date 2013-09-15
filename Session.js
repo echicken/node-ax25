@@ -163,7 +163,7 @@ var Session = function(args) {
 
 		}
 
-		if(response instanceof ax25.Packet)
+		if(response)
 			send(response);
 
 	}
