@@ -451,8 +451,12 @@ var Packet = function(args) {
 		this.disassemble(args.frame);
 	} else if(typeof args != "undefined") {
 		for(var a in args) {
-			if(typeof this[a] == "undefined" || typeof args[a] == "function" || a == "frame")
+			if(typeof this[a] == "undefined" || typeof args[a] == "function" || a == "frame") {
+				console.log(
+					"Not assigning " + a + ": " + typeof this[a]
+				);
 				continue;
+			}
 			this[a] = args[a];
 		}
 	}
