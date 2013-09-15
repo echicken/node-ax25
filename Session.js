@@ -122,7 +122,7 @@ var Session = function(args) {
 				'destinationSSID'		: properties.remoteSSID,
 				'sourceCallsign'		: properties.localCallsign,
 				'sourceSSID'			: properties.localSSID,
-				'repeaterPath'			: properties.repeaterPath,
+//				'repeaterPath'			: properties.repeaterPath,
 				'nr'					: properties.receiveState,
 				'ns'					: properties.sendState,
 				'pollFinal'				: packet.pollFinal,
