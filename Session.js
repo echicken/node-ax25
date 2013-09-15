@@ -87,7 +87,7 @@ var Session = function(args) {
 			'destinationSSID'		: self.remoteSSID,
 			'sourceCallsign'		: self.localCallsign,
 			'sourceSSID'			: self.localSSID,
-			'repeaterPath'			: self.repeaterPath,
+//			'repeaterPath'			: self.repeaterPath,
 			'pollFinal'				: false,
 			'command'				: true,
 			'type'					: ax25.Defs.I_FRAME,
