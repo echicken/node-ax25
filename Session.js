@@ -184,6 +184,8 @@ var Session = function(args) {
 
 	}
 
+	this.emit("ready", "READY");
+
 }
 util.inherits(Session, events.EventEmitter);
 
