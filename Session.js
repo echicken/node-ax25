@@ -167,8 +167,8 @@ var Session = function(args) {
 		}
 
 //		if(response)
-			send(response);
 			console.log("Session responding to packet.");
+			send(response);
 
 	}
 
