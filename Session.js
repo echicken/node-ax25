@@ -84,10 +84,6 @@ var Session = function(args) {
 		}
 	}
 
-	this.receive = function(packet) {
-
-	}
-
 	var send = function(packet) {
 		if(typeof packet == undefined || !(packet instanceof ax25.Packet))
 			throw "ax25.Session: Internal error (private function 'send' - invalid packet.)";
@@ -119,6 +115,71 @@ var Session = function(args) {
 		if(typeof str != "string")
 			throw "ax25.Session.sendString: non-string or no data provided.";
 		self.send(ax25.Util.stringToByteArray(str));
+	}
+
+	this.receive = function(packet) {
+
+		properties.repeaterPath = [];
+		for(var r = packet.repeaterPath.length - 1; r >= 0; r--) {
+			// Drop any packet that was meant for a repeater and not us
+			if(packet.repeaterPath[r].ssid&A_CRH == 0)
+				return false;
+			packet.repeaterPath[r].ssid|=(0<<7);
+			properties.repeaterPath.push(packet.repeaterPath[r]);
+		}
+
+		var response = new ax25.Packet(
+			{	'destinationCallsign'	: properties.remoteCallsign,
+				'destinationSSID'		: properties.remoteSSID,
+				'sourceCallsign'		: properties.localCallsign,
+				'sourceSSID'			: properties.localSSID,
+				'repeaterPath'			: properties.repeaterPath,
+				'nr'					: properties.receiveState,
+				'ns'					: properties.sendState,
+				'pollFinal'				: packet.pollFinal,
+				'command'				: (packet.command) ? false : true
+			}
+		);
+
+		if(!properties.connected) {
+		
+			switch(packet.type) {
+			
+				case U_FRAME_SABM:
+					resetVariables();
+					properties.connected = true;
+					response.type = U_FRAME_UA;
+					break;
+					
+				case U_FRAME_UA:
+					if(properties.connecting) {
+						resetVariables();
+						properties.connected = true;
+						response = false;
+						break;
+					} // Else, fall through to default
+					
+				case U_FRAME_UI:
+					buffers.receive.push(packet.info);
+					if(!packet.pollFinal) {
+						response = false;
+						break;
+					} // Else, fall through to default
+			
+				default:
+					response.type = U_FRAME_DM;
+					response.pollFinal = true;
+					break;
+					
+			}
+		
+		} else {
+
+		}
+
+		if(response instanceof ax25.Packet)
+			send(response);
+
 	}
 
 }
