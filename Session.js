@@ -169,10 +169,10 @@ var Session = function(args) {
 	}
 
 	if(typeof args.packet != "undefined" && args.packet instanceof ax25.Packet) {
-		this.remoteCallsign = args.packet.sourceCallsign.toString();
-		this.remoteSSID = args.packet.sourceSSID;
-		this.localCallsign = args.packet.destinationCallsign;
-		this.localSSID = args.packet.destinationSSID;
+		properties.remoteCallsign = args.packet.sourceCallsign;
+		properties.remoteSSID = args.packet.sourceSSID;
+		properties.localCallsign = args.packet.destinationCallsign;
+		properties.localSSID = args.packet.destinationSSID;
 		this.receive(args.packet);
 	} else {
 
