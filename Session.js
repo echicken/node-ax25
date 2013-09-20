@@ -12,6 +12,7 @@ var Session = function(args) {
 		'remoteSSID'			: 0,
 		'localCallsign'			: "",
 		'localSSID'				: 0,
+		'repeaterPath'			: [],
 		'receiveState'			: 0,
 		'sendState'				: 0,
 		'remoteReceiveState'	: 0,
@@ -103,7 +104,7 @@ var Session = function(args) {
 			'destinationSSID'		: self.remoteSSID,
 			'sourceCallsign'		: self.localCallsign,
 			'sourceSSID'			: self.localSSID,
-//			'repeaterPath'			: self.repeaterPath,
+			'repeaterPath'			: self.repeaterPath,
 			'pollFinal'				: false,
 			'command'				: true,
 			'type'					: ax25.Defs.I_FRAME,
@@ -131,21 +132,21 @@ var Session = function(args) {
 			properties.localSSID = packet.destinationSSID;
 		}
 
-//		properties.repeaterPath = [];
-//		for(var r = packet.repeaterPath.length - 1; r >= 0; r--) {
-//			// Drop any packet that was meant for a repeater and not us
-//			if(packet.repeaterPath[r].ssid&A_CRH == 0)
-//				return false;
-//			packet.repeaterPath[r].ssid|=(0<<7);
-//			properties.repeaterPath.push(packet.repeaterPath[r]);
-//		}
+		properties.repeaterPath = [];
+		for(var r = packet.repeaterPath.length - 1; r >= 0; r--) {
+			// Drop any packet that was meant for a repeater and not us
+			if(packet.repeaterPath[r].ssid&A_CRH == 0)
+				return false;
+			packet.repeaterPath[r].ssid|=(0<<7);
+			properties.repeaterPath.push(packet.repeaterPath[r]);
+		}
 
 		var response = new ax25.Packet(
 			{	'destinationCallsign'	: properties.remoteCallsign,
 				'destinationSSID'		: properties.remoteSSID,
 				'sourceCallsign'		: properties.localCallsign,
 				'sourceSSID'			: properties.localSSID,
-//				'repeaterPath'			: properties.repeaterPath,
+				'repeaterPath'			: properties.repeaterPath,
 				'nr'					: properties.receiveState,
 				'ns'					: properties.sendState,
 				'pollFinal'				: packet.pollFinal,
@@ -167,13 +168,13 @@ var Session = function(args) {
 						properties.connected = true;
 						response = false;
 						break;
-					} // Else, fall through to default
+					}
 					
 				case ax25.Defs.U_FRAME_UI:
 					if(!packet.pollFinal) {
 						response = false;
 						break;
-					} // Else, fall through to default
+					}
 			
 				default:
 					response.type = ax25.Defs.U_FRAME_DM;
@@ -184,13 +185,70 @@ var Session = function(args) {
 		
 		} else {
 
+			switch(packet.type) {
+			
+				case U_FRAME_SABM:
+					properties.connected = true;
+					response.type = U_FRAME_UA;
+					break;
+
+				case U_FRAME_DISC:
+					response.type = U_FRAME_UA;
+					break;
+					
+				case U_FRAME_UA:
+					if(properties.connecting || properties.disconnecting)
+						properties.connected = (properties.connecting) ? true : false;
+					response = false;
+					break;
+					
+				case U_FRAME_UI:
+					self.emit("data", packet);
+					if(packet.pollFinal) {
+						response.type = S_FRAME_RR;
+						response.nr = properties.receiveState;
+					} else {
+						response = false;
+					}
+					break;
+					
+				case U_FRAME_DM:
+					response = false;
+					break;
+					
+				case U_FRAME_FRMR:
+					response = false;
+					break;
+					
+				case S_FRAME_RR:
+					response = false;
+					break;
+					
+				case S_FRAME_RNR:
+					response = false;
+					break;
+					
+				case S_FRAME_REJ:
+					response = false;
+					break;
+					
+				case I_FRAME:
+					self.emit("data", packet);
+					response = false;
+					break;
+					
+				default:
+					response = false;
+					break;
+					
+			}
+
 		}
 
 		if(response instanceof ax25.Packet)
 			send(response);
 
 	}
-
 
 }
 util.inherits(Session, events.EventEmitter);
