@@ -18,8 +18,8 @@ var Utils = function() {
 	}
 
 	this.logByte = function(b) {
-		log(
-			format(
+		console.log(
+			util.format(
 				"%d%d%d%d%d%d%d%d",
 				(b & (1<<7)) ? 1 : 0,
 				(b & (1<<6)) ? 1 : 0,
