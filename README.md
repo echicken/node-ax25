@@ -34,7 +34,7 @@ var tnc = new ax25.kissTNC(
 The *serialPort* and *baudRate* argument properties are required.  The rest are optional, and can be set after the fact.
 
 ```js
-var ax25 = require("ax25");
+var ax25 = require("node-ax25");
 
 var tnc = new ax25.kissTNC(
 	{	serialPort : "COM3",	// Serial device, eg. "COM3" or "/dev/ttyUSB0"
@@ -118,7 +118,7 @@ The second example shows how you can assign values to all of the *ax25.Packet* o
 
 ```js
 var util = require("util");
-var ax25 = require("ax25");
+var ax25 = require("node-ax25");
 
 var tnc = new ax25.kissTNC(
 	{	'serialPort' : "/dev/ttyUSB0",
