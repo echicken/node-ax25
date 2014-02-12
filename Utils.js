@@ -39,13 +39,6 @@ var Utils = function() {
 		return (l < f) ? l + (m - f) : l - f;
 	}
 
-	/*	wrapAround(number, modulus)
-		If 'number' happens to be negative, it will be wrapped back around 'modulus'
-		eg. wrapAround(-1, 8) == 7. */
-	this.wrapAround = function(n, m) {
-		return (n < 0) ? m - Math.abs(n) : n;
-	}
-
 	// Turns a string into an array of character codes
 	this.stringToByteArray = function(s) {
 		s = s.split("");
