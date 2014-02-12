@@ -1,4 +1,4 @@
-exports.kissDefs	= require("./kissdefs.js");
+exports.kissDefs	= require("./kissDefs.js");
 exports.Defs		= require("./Defs.js");
 exports.Utils		= require("./Utils.js");
 exports.kissTNC		= require("./kissTNC.js");
