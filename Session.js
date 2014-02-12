@@ -166,6 +166,7 @@ var Session = function(args) {
 				case ax25.Defs.U_FRAME_UA:
 					if(properties.connecting) {
 						properties.connected = true;
+						properties.connecting = false;
 						response = false;
 						break;
 					}
@@ -193,7 +194,9 @@ var Session = function(args) {
 					break;
 
 				case ax25.Defs.U_FRAME_DISC:
+					self.emit("disconnect");
 					response.type = ax25.Defs.U_FRAME_UA;
+					properties.connected = false;
 					break;
 					
 				case ax25.Defs.U_FRAME_UA:
@@ -213,6 +216,8 @@ var Session = function(args) {
 					break;
 					
 				case ax25.Defs.U_FRAME_DM:
+					self.emit("disconnect");
+					properties.connected = false;
 					response = false;
 					break;
 					
