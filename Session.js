@@ -191,11 +191,11 @@ var Session = function(args) {
 			
 				case ax25.Defs.U_FRAME_SABM:
 					properties.connected = true;
-					response.type = U_FRAME_UA;
+					response.type = ax25.Defs.U_FRAME_UA;
 					break;
 
 				case ax25.Defs.U_FRAME_DISC:
-					response.type = U_FRAME_UA;
+					response.type = ax25.Defs.U_FRAME_UA;
 					break;
 					
 				case ax25.Defs.U_FRAME_UA:
@@ -207,7 +207,7 @@ var Session = function(args) {
 				case ax25.Defs.U_FRAME_UI:
 					self.emit("data", packet);
 					if(packet.pollFinal) {
-						response.type = S_FRAME_RR;
+						response.type = ax25.Defs.S_FRAME_RR;
 						response.nr = properties.receiveState;
 					} else {
 						response = false;
