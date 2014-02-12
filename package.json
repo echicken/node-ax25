@@ -1,5 +1,4 @@
-{
-  "name": "ax25",
+{ "name": "node-ax25",
   "version": "0.0.1",
   "description": "A KISS & AX.25 Stack for node.js",
   "main": "index.js",

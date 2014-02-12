@@ -69,8 +69,6 @@ tnc.on(
 
 * **serialPort** - eg. "COM1", or "/dev/ttyUSB0". (String)
 * **baudRate** - eg. 1200, 9600, 115200. (Number)
-* **callSign** - eg. "VE3XEC". (String)
-* **SSID** - eg. 0. (Number, 0 - 15)
 * **txDelay** - Transmitter keyup delay, in milliseconds. Default: 500. (Number)
 * **persistence** - Persistence, float between 0 and 1. Default: 0.25. (Number)
 * **slotTime** - Slot interval, in milliseconds. Default : 100. (Number)
@@ -122,7 +120,11 @@ The second example shows how you can assign values to all of the *ax25.Packet* o
 var util = require("util");
 var ax25 = require("ax25");
 
-var tnc = new ax25.kissTNC("COM3", 9600);
+var tnc = new ax25.kissTNC(
+	{	'serialPort' : "/dev/ttyUSB0",
+		'baudRate' : 9600
+	}
+);
 
 tnc.on(
 	"error",
