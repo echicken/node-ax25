@@ -185,8 +185,6 @@ var Session = function(args) {
 		
 		} else {
 
-			console.log("Connected, packet type: " + packet.type);
-
 			switch(packet.type) {
 			
 				case ax25.Defs.U_FRAME_SABM:
