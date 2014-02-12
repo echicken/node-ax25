@@ -229,7 +229,7 @@ var Packet = function(args) {
 	this.__defineGetter__(
 		"pid",
 		function() {
-			return (properites.pid == 0) ? undefined : properties.pid;
+			return (properties.pid == 0) ? undefined : properties.pid;
 		}
 	);
 	
