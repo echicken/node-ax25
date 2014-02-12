@@ -237,8 +237,15 @@ var Session = function(args) {
 					break;
 					
 				case ax25.Defs.I_FRAME:
-					self.emit("data", packet);
-					response = false;
+					if(packet.ns == properties.receiveState) {
+						self.emit("data", packet);
+						properties.receiveState = (properties.receiveState + 1) % 8;
+						response.type = ax25.Defs.S_FRAME_RR;
+						response.nr = properties.receiveState;
+					} else {
+						response.type = ax25.Defs.S_FRAME_REJ;
+						response.nr = properties.receiveState;
+					}
 					break;
 					
 				default:
