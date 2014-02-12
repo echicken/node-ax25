@@ -187,22 +187,22 @@ var Session = function(args) {
 
 			switch(packet.type) {
 			
-				case U_FRAME_SABM:
+				case ax25.Defs.U_FRAME_SABM:
 					properties.connected = true;
 					response.type = U_FRAME_UA;
 					break;
 
-				case U_FRAME_DISC:
+				case ax25.Defs.U_FRAME_DISC:
 					response.type = U_FRAME_UA;
 					break;
 					
-				case U_FRAME_UA:
+				case ax25.Defs.U_FRAME_UA:
 					if(properties.connecting || properties.disconnecting)
 						properties.connected = (properties.connecting) ? true : false;
 					response = false;
 					break;
 					
-				case U_FRAME_UI:
+				case ax25.Defs.U_FRAME_UI:
 					self.emit("data", packet);
 					if(packet.pollFinal) {
 						response.type = S_FRAME_RR;
@@ -212,27 +212,27 @@ var Session = function(args) {
 					}
 					break;
 					
-				case U_FRAME_DM:
+				case ax25.Defs.U_FRAME_DM:
 					response = false;
 					break;
 					
-				case U_FRAME_FRMR:
+				case ax25.Defs.U_FRAME_FRMR:
 					response = false;
 					break;
 					
-				case S_FRAME_RR:
+				case ax25.Defs.S_FRAME_RR:
 					response = false;
 					break;
 					
-				case S_FRAME_RNR:
+				case ax25.Defs.S_FRAME_RNR:
 					response = false;
 					break;
 					
-				case S_FRAME_REJ:
+				case ax25.Defs.S_FRAME_REJ:
 					response = false;
 					break;
 					
-				case I_FRAME:
+				case ax25.Defs.I_FRAME:
 					self.emit("data", packet);
 					response = false;
 					break;
