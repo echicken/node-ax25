@@ -252,10 +252,7 @@ var Packet = function(args) {
 	this.__defineGetter__(
 		"info",
 		function() {
-			if(properties.info.length < 1)
-				return undefined;
-			else
-				return properties.info;
+			return properties.info;
 		}
 	);
 	
@@ -355,11 +352,9 @@ var Packet = function(args) {
 			throw "ax25.Packet: Source callsign not set.";
 		if(	properties.type == ax25.Defs.I_FRAME
 			&&
-			(	!properties.hasOwnProperty('pid')
+			(	typeof properties.pid == "undefined"
 				||
-				!properties.hasOwnProperty('info')
-				||
-				properties.info.length == 0
+				properties.info.length < 1
 			)
 		) {
 			throw "ax25.Packet: I or UI frame with no payload.";

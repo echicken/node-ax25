@@ -27,7 +27,8 @@ var Session = function(args) {
 		'disconnecting'			: false,
 		'rejecting'				: false,
 		'remoteBusy'			: false,
-		'awaitingReset'			: false
+		'awaitingReset'			: false,
+		'sendBuffer'			: []
 	}
 
 	this.__defineGetter__(
@@ -59,6 +60,23 @@ var Session = function(args) {
 		function(value) {
 			if(typeof value != "string" || !ax25.Utils.testCallsign(value))
 				throw "ax25.Session: invalid remoteCallsign assignment.";
+			properties.remoteCallsign = value;
+		}
+	);
+
+	this.__defineGetter__(
+		"remoteSSID",
+		function() {
+			return properties.remoteSSID;
+		}
+	);
+
+	this.__defineSetter__(
+		"remoteSSID",
+		function(value) {
+			if(typeof value != "number" || value < 0 || value > 15)
+				throw "ax25.Session: invalid remoteSSID assignment";
+			properties.remoteSSID = value;
 		}
 	);
 
@@ -74,6 +92,23 @@ var Session = function(args) {
 		function(value) {
 			if(typeof value != "string" || !ax25.Utils.testCallsign(value))
 				throw "ax25.Session: invalid localCallsign assignment.";
+			properties.localCallsign = value;
+		}
+	);
+
+	this.__defineGetter__(
+		"localSSID",
+		function() {
+			return properties.localSSID;
+		}
+	);
+
+	this.__defineSetter__(
+		"localSSID",
+		function(value) {
+			if(typeof value != "number" || value < 0 || value > 15)
+				throw "ax25.Session: invalid remoteSSID assignment";
+			properties.localSSID = value;
 		}
 	);
 
@@ -103,23 +138,35 @@ var Session = function(args) {
 			'destinationSSID'		: self.remoteSSID,
 			'sourceCallsign'		: self.localCallsign,
 			'sourceSSID'			: self.localSSID,
-			'repeaterPath'			: self.repeaterPath,
+			'repeaterPath'			: properties.repeaterPath,
 			'pollFinal'				: false,
 			'command'				: true,
 			'type'					: ax25.Defs.I_FRAME,
-			'nr'					: self.receiveState,
-			'ns'					: self.sendState,
+			'nr'					: properties.receiveState,
+			'ns'					: properties.sendState,
 			'pid'					: ax25.Defs.PID_NONE,
 			'info'					: data
 		};
 		var packet = new ax25.Packet(packetArgs);
-		send(packet);
+		properties.sendBuffer.push(packet);
+		drain();
 	}
 
 	this.sendString = function(str) {
 		if(typeof str != "string")
 			throw "ax25.Session.sendString: non-string or no data provided.";
-		self.send(ax25.Util.stringToByteArray(str));
+		self.send(ax25.Utils.stringToByteArray(str));
+	}
+
+	var drain = function() {
+		while(
+			ax25.Utils.distanceBetween(properties.sendState, properties.remoteReceiveState, 8) < 7
+			&&
+			properties.sendBuffer.length > 0
+		) {
+			send(properties.sendBuffer.shift());
+			properties.sendState = (properties.sendState + 1) % 8;
+		}
 	}
 
 	this.receive = function(packet) {
@@ -225,18 +272,22 @@ var Session = function(args) {
 					break;
 					
 				case ax25.Defs.S_FRAME_RR:
+					properties.remoteReceiveState = packet.nr;
 					response = false;
 					break;
 					
 				case ax25.Defs.S_FRAME_RNR:
+					properties.remoteReceiveState = packet.nr;
 					response = false;
 					break;
 					
 				case ax25.Defs.S_FRAME_REJ:
+					properties.remoteReceiveState = packet.nr;
 					response = false;
 					break;
 					
 				case ax25.Defs.I_FRAME:
+					properties.remoteReceiveState = packet.nr;
 					if(packet.ns == properties.receiveState) {
 						self.emit("data", packet);
 						properties.receiveState = (properties.receiveState + 1) % 8;
