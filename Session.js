@@ -134,10 +134,10 @@ var Session = function(args) {
 		if(!(data instanceof Array))
 			throw "ax25.Session.send: argument must be array.";
 		var packetArgs = {
-			'destinationCallsign'	: self.remoteCallsign,
-			'destinationSSID'		: self.remoteSSID,
-			'sourceCallsign'		: self.localCallsign,
-			'sourceSSID'			: self.localSSID,
+			'destinationCallsign'	: properties.remoteCallsign,
+			'destinationSSID'		: properties.remoteSSID,
+			'sourceCallsign'		: properties.localCallsign,
+			'sourceSSID'			: properties.localSSID,
 			'repeaterPath'			: properties.repeaterPath,
 			'pollFinal'				: false,
 			'command'				: true,
