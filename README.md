@@ -8,11 +8,20 @@ ax25.Session object is next on the list, which will allow for stateful communica
 
 ---
 
-###Dependencies
+###Installation
+
+Assuming you have git installed, the following will clone this repository into a directory called 'node-ax25' under the current working directory, then attempt to install its dependencies:
+
+```sh
+git clone https://github.com/echicken/node-ax25.git
+npm install
+```
+
+####Dependencies
 
 [node-serialport](https://github.com/voodootikigod/node-serialport)
 
-If you intend to interface with a conventional KISS TNC, the node-serialport module will be required.  Installation of this package can be a bit more complicated than is usual, so be sure to read the instructions.
+The node-ax25 module is made to interface with a KISS TNC over a serial port.  (It would, however, be possible to use it with another kind of interface.)  If you follow the installation instructions above, npm will attempt to install the 'serialport' module as a dependency.  Installation of the 'serialport' module can be a bit tricky depending on the specifics of your system; if you run into problems, be sure to read the installation instructions on the [node-serialport](https://github.com/voodootikigod/node-serialport) project page.
 
 ---
 
