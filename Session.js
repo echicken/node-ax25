@@ -159,14 +159,17 @@ var Session = function(args) {
 	}
 
 	var drain = function() {
+		var ret = false;
 		while(
 			ax25.Utils.distanceBetween(properties.sendState, properties.remoteReceiveState, 8) < 7
 			&&
 			properties.sendBuffer.length > 0
 		) {
+			ret = true;
 			send(properties.sendBuffer.shift());
 			properties.sendState = (properties.sendState + 1) % 8;
 		}
+		return ret;
 	}
 
 	this.receive = function(packet) {
@@ -273,6 +276,7 @@ var Session = function(args) {
 					
 				case ax25.Defs.S_FRAME_RR:
 					properties.remoteReceiveState = packet.nr;
+					drain();
 					response = false;
 					break;
 					
@@ -291,8 +295,12 @@ var Session = function(args) {
 					if(packet.ns == properties.receiveState) {
 						self.emit("data", packet);
 						properties.receiveState = (properties.receiveState + 1) % 8;
-						response.type = ax25.Defs.S_FRAME_RR;
-						response.nr = properties.receiveState;
+						if(drain()) {
+							response = false;
+						} else {
+							response.type = ax25.Defs.S_FRAME_RR;
+							response.nr = properties.receiveState;
+						}
 					} else {
 						response.type = ax25.Defs.S_FRAME_REJ;
 						response.nr = properties.receiveState;
