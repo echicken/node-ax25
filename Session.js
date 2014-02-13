@@ -16,7 +16,6 @@ var Session = function(args) {
 		'receiveState'			: 0,
 		'sendState'				: 0,
 		'remoteReceiveState'	: 0,
-		'remoteSendState'		: 0,
 		'timer1'				: 0,
 		'timer1Retries'			: 0,
 		'timer3'				: 0,
@@ -28,7 +27,8 @@ var Session = function(args) {
 		'rejecting'				: false,
 		'remoteBusy'			: false,
 		'awaitingReset'			: false,
-		'sendBuffer'			: []
+		'sendBuffer'			: [],
+		'sentBuffer'			: []
 	}
 
 	this.__defineGetter__(
@@ -166,10 +166,17 @@ var Session = function(args) {
 			properties.sendBuffer.length > 0
 		) {
 			ret = true;
-			send(properties.sendBuffer.shift());
+			var sendMe = properties.sendBuffer.shift();
+			send(sendMe);
+			properties.sentBuffer.push(sendMe);
 			properties.sendState = (properties.sendState + 1) % 8;
 		}
 		return ret;
+	}
+
+	var receiveAcknowledgement = function(nr) {
+		properties.remoteReceiveState = nr;
+		// remove acknowledged packets from properties.sentBuffer
 	}
 
 	this.receive = function(packet) {
@@ -275,23 +282,23 @@ var Session = function(args) {
 					break;
 					
 				case ax25.Defs.S_FRAME_RR:
-					properties.remoteReceiveState = packet.nr;
+					receiveAcknowledgement(packet.nr);
 					drain();
 					response = false;
 					break;
 					
 				case ax25.Defs.S_FRAME_RNR:
-					properties.remoteReceiveState = packet.nr;
+					receiveAcknowledgement(packet.nr);
 					response = false;
 					break;
 					
 				case ax25.Defs.S_FRAME_REJ:
-					properties.remoteReceiveState = packet.nr;
+					receiveAcknowledgement(packet.nr);
 					response = false;
 					break;
 					
 				case ax25.Defs.I_FRAME:
-					properties.remoteReceiveState = packet.nr;
+					receiveAcknowledgement(packet.nr);
 					if(packet.ns == properties.receiveState) {
 						self.emit("data", packet);
 						properties.receiveState = (properties.receiveState + 1) % 8;
