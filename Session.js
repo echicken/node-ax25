@@ -76,6 +76,16 @@ var Session = function(args) {
 		clearTimer("t1");
 	}
 
+	var t1Poll = function() {
+		// if t1Attempts is at retry limit, clear this interval
+		// and then do this.connect() (reset the link)
+		// else increment t1Attempts and emit RR with P set true
+	}
+
+	var t3Poll = function() {
+		// if t3Attempts is at retry limit, clear this interval
+	}
+
 	var drain = function(retransmit) {
 		var ret = false;
 		// cycle through sendbuffer
@@ -231,17 +241,13 @@ var Session = function(args) {
 			case ax25.Defs.U_FRAME_UA:
 				if(state.connection&CONNECTING) {
 					state.connection = CONNECTED;
-					if(timers.connect)
-						clearInterval(timers.connect);
-					timers.connectAttempts = 0;
+					clearTimer("connect");
 					response = false;
 					doDrainAll = true;
 					break;
 				} else if(state.connection&DISCONNECTING) {
 					state.connection = DISCONNECTED;
-					if(timers.disconnect)
-						clearInterval(timers.disconnect);
-					timers.disconnectAttempts = 0;
+					clearTimer("disconnect");
 					response = false;
 					break;
 				} else if(state.connection&CONNECTED) {
@@ -335,7 +341,6 @@ var Session = function(args) {
 				}
 				
 			default:
-				// Fall through default action for all but SABM and UI when disconnected
 				response.type = ax25.Defs.U_FRAME_DM;
 				response.pollFinal = true;
 				break;
