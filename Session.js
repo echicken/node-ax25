@@ -13,7 +13,7 @@ var Session = function(args) {
 	events.EventEmitter.call(this);
 
 	var settings = {
-		'window' : 7,
+		'windowSize' : 7,
 		'packetLength' : 256,
 		'timeout' : 5000
 	};
@@ -33,6 +33,17 @@ var Session = function(args) {
 		'sendSequence' : 0,
 		'remoteReceiveSequence' : 0,
 		'remoteBusy' : false
+	};
+
+	var timers = {
+		'connect' : false,
+		'connectAttempts' : 0,
+		'disconnect' : false,
+		'disconnectAttempts' : 0,
+		't1' : false,
+		't1Attempts' : 0,
+		't3' : false,
+		't3Attempts' : 0
 	};
 
 	var emitPacket = function(packet) {
@@ -85,13 +96,14 @@ var Session = function(args) {
 				// If connected, reset state numeric values to zero,
 				// also resetting nr and ns on any unacknowledged packets; retransmit packets.
 				// Set state.connection to CONNECTED
+				// Cancel all timers and reset counts
 				break;
 
 			case ax25.Defs.U_FRAME_DISC:
 				if(state.connection&CONNECTED) {
 					// Send UA, with F set to 1 in response if P was set to 1
 					// Set state.connection to DISCONNECTED
-					// Cancel any timed events
+					// Cancel all timers and reset counts
 					// Reset state numerics
 					break;
 				}
@@ -99,16 +111,17 @@ var Session = function(args) {
 			case ax25.Defs.U_FRAME_UA:
 				if(state.connectiion&CONNECTING) {
 					// Set state.connection to CONNECTED
-					// Cancel timed event for resending SABM
+					// Cancel timers.connect and reset connect attempt count
 					break;
 				} else if(state.connection&DISCONNECTING) {
 					// Set state.connection to DISCONNECTED
-					// Cancel timed event for resending DISC
+					// Cancel timers.disconnect and reset disconnect attempt count
 					break;
 				} else if(state.connection&CONNECTED) {
 					// Initiate resetting procedure:
 					// (Essentially reset state and then initiate a new connection)
 					// Renumber nr/ns on any unsent or unacknowledged I frames and queue for retransmit
+					// Cancel all timers and reset counts
 					break;
 				}
 				
@@ -124,6 +137,7 @@ var Session = function(args) {
 					// Initiate resetting procedure:
 					// (Reset state and initiate a new connection)
 					// Renumber nr/ns on any unsent or unacknowledged I frames and queue for retransmit
+					// Cancel all timers and reset counts
 					break;
 				} else if(state.connection&CONNECTING) {
 					// If connecting, cancel connection attempt and do not respond
@@ -141,6 +155,7 @@ var Session = function(args) {
 					// Initiate resetting procedure:
 					// (Reset state and initiate a new connection)
 					// Renumber nr/ns on any unsent or unacknowledged I frames and queue for retransmit
+					// Cancel all timers and reset counts
 					break;
 				}
 				
@@ -159,7 +174,7 @@ var Session = function(args) {
 					// Set state.remoteBusy to true
 					// Discard any saved, transmitted I frames through packet.nr - 1
 					// Update state.remoteReceiveSequence
-					// Cancel any T1 I frame retransmission events
+					// Cancel T1 RR poll event if any, reset T1 count
 					// Set an event to do an RR poll for remote status
 					break;
 				}
@@ -182,7 +197,8 @@ var Session = function(args) {
 					// If packet.ns does not equal state.receiveSequence:
 					//  - send REJ with PF set to same as packet
 					// In any case, update state.remoteReceiveSequence and
-					// transmit any outstanding frames up to window size
+					// transmit any outstanding frames up to window size,
+					// setting a T1 RR poll timed event
 					break;
 				}
 				
