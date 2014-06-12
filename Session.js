@@ -15,7 +15,8 @@ var Session = function(args) {
 	var settings = {
 		'windowSize' : 7,
 		'packetLength' : 256,
-		'timeout' : 5000
+		'timeout' : 5000,
+		'retries' : 5
 	};
 
 	var properties = {
@@ -32,7 +33,8 @@ var Session = function(args) {
 		'receiveSequence' : 0,
 		'sendSequence' : 0,
 		'remoteReceiveSequence' : 0,
-		'remoteBusy' : false
+		'remoteBusy' : false,
+		'sendBuffer' : []
 	};
 
 	var timers = {
@@ -55,6 +57,108 @@ var Session = function(args) {
 			return;
 		}
 		self.emit("packet",	packet.assemble());
+	}
+
+	var clearTimer = function(timerName) {
+		if(typeof timers[timerName] != "undefined" && timers[timerName]) {
+			clearInterval(timers[timerName]);
+			timers[timerName] = false;
+		}
+		timers[timername + "Attempts"] = 0;
+	}
+
+	var receiveAcknowledgement = function(packet) {
+		for(var p in state.sendBuffer) {
+			if(state.sendBuffer[p].sent && state.sendBuffer[p].ns < packet.nr)
+				state.sendBuffer.shift();
+		}
+		state.remoteReceiveSequence = packet.nr;
+		clearTimer("t1");
+	}
+
+	var drain = function(retransmit) {
+		var ret = false;
+		// cycle through sendbuffer
+		// if retransmit is on, resend any sent packets
+		// emit packets until distance between ns and remote nr == 7 or all packets are sent
+		// If any packets were sent, set an RR poll event
+		return ret;
+	}
+
+	this.connect = function() {
+
+		if(!state.initialized) {
+			self.emit(
+				"error",
+				"ax25.Session.connect: localCallsign and remoteCallsign not set."
+			);
+		}
+
+		state.connection = CONNECTING;
+		state.receiveSequence = 0;
+		state.sendSequence = 0;
+		state.remoteReceiveSequence = 0;
+		state.remoteBusy = false;
+
+		clearTimer("disconnect");
+		clearTimer("t1");
+		clearTimer("t3");
+
+		timers.connectAttempts++;
+		if(timers.connectAttempts == settings.retries) {
+			if(timers.connect)
+				clearInterval(timers.connect);
+			timers.connectAttempts = 0;
+			state.connection = DISCONNECTED;
+			return;
+		}
+
+		if(!timers.connect)
+			timers.connect = setInterval(self.connect, timeout);
+
+		emitPacket(
+			new ax25.packet(
+				{	'destinationCallsign'	: properties.remoteCallsign,
+					'destinationSSID'		: properties.remoteSSID,
+					'sourceCallsign'		: properties.localCallsign,
+					'sourceSSID'			: properties.localSSID,
+					'repeaterPath'			: properties.repeaterPath,
+					'nr'					: state.receiveSequence,
+					'ns'					: state.sendSequence,
+					'pollFinal'				: true,
+					'command' 				: true,
+					'type'					: ax25.Defs.U_FRAME_SABM	
+				}
+			)
+		);
+
+		for(var p = 0; p < state.sendBuffer.length; p++) {
+			state.sendBuffer[p].ns = p % 8;
+			state.sendBuffer[p].nr = 0;
+			state.sendBuffer[p].sent = false;
+		}
+		
+		// Set connect retry event
+
+	}
+
+	this.disconnect = function() {
+		// Send a DISC frame
+		// set state.connection to DISCONNECTING
+		// set a disconnect retry event
+	}
+
+	this.send = function(info) {
+		// check that info is an array (should really move to Buffers or Uint8Array)
+		// while info.length > 0, info.splice 0 through settings.packetLength and stuff
+		// the result into the info field of a new I frame, stuff each I frame into the sendBuffer
+		// call drain()
+	}
+
+	this.sendString = function(str) {
+		// check that str is a string
+		// convert str to array of bytes
+		// this.send(str)
 	}
 
 	this.receive = function(packet) {
@@ -88,117 +192,145 @@ var Session = function(args) {
 			}
 		);
 
+		var doDrain = false;
+		var doDrainAll = false;
+
 		switch(packet.type) {
 		
 			case ax25.Defs.U_FRAME_SABM:
-				// If disconnected, respond with UA
-				// If P is 1, set F to 1 in response
-				// If connected, reset state numeric values to zero,
-				// also resetting nr and ns on any unacknowledged packets; retransmit packets.
-				// Set state.connection to CONNECTED
-				// Cancel all timers and reset counts
+				state.connection = CONNECTED;
+				state.receiveSequence = 0;
+				state.sendSequence = 0;
+				state.remoteReceiveSequence = 0;
+				state.remoteBusy = false;
+				clearTimer("connect");
+				clearTimer("disconnect");
+				clearTimer("t1");
+				clearTimer("t3");
+				this.emit("connection", true);
+				response.type = ax25.Defs.U_FRAME_UA;
+				doDrainAll = true;
 				break;
 
 			case ax25.Defs.U_FRAME_DISC:
 				if(state.connection&CONNECTED) {
-					// Send UA, with F set to 1 in response if P was set to 1
-					// Set state.connection to DISCONNECTED
-					// Cancel all timers and reset counts
-					// Reset state numerics
+					state.connection = DISCONNECTED;
+					state.receiveSequence = 0;
+					state.sendSequence = 0;
+					state.remoteReceiveSequence = 0;
+					state.remoteBusy = false;
+					clearTimer("connect");
+					clearTimer("disconnect");
+					clearTimer("t1");
+					clearTimer("t3");
+					this.emit("connection", false);
+					response.type = ax25.Defs.U_FRAME_UA;
 					break;
 				}
 				
 			case ax25.Defs.U_FRAME_UA:
-				if(state.connectiion&CONNECTING) {
-					// Set state.connection to CONNECTED
-					// Cancel timers.connect and reset connect attempt count
+				if(state.connection&CONNECTING) {
+					state.connection = CONNECTED;
+					if(timers.connect)
+						clearInterval(timers.connect);
+					timers.connectAttempts = 0;
+					response = false;
+					doDrainAll = true;
 					break;
 				} else if(state.connection&DISCONNECTING) {
-					// Set state.connection to DISCONNECTED
-					// Cancel timers.disconnect and reset disconnect attempt count
+					state.connection = DISCONNECTED;
+					if(timers.disconnect)
+						clearInterval(timers.disconnect);
+					timers.disconnectAttempts = 0;
+					response = false;
 					break;
 				} else if(state.connection&CONNECTED) {
-					// Initiate resetting procedure:
-					// (Essentially reset state and then initiate a new connection)
-					// Renumber nr/ns on any unsent or unacknowledged I frames and queue for retransmit
-					// Cancel all timers and reset counts
+					this.connect();
+					response = false;
 					break;
 				}
 				
 			case ax25.Defs.U_FRAME_UI:
-				// Emit 'data' event with payload
-				// If P is set to 1, transmit a response:
-				// 	- if disconnected, response is a DM frame (do not set F to 1)
-				//  - if connected, response is an RR frame ("")
+				this.emit("data", packet.info);
+				if(packet.pollFinal) {
+					response.pollFinal = false;
+					response.type = (state.connection == CONNECTED) ? ax25.Defs.S_FRAME_RR : ax25.Defs.U_FRAME_DM;
+				} else {
+					response = false;
+				}
 				break;
 				
 			case ax25.Defs.U_FRAME_DM:
 				if(state.connection&CONNECTED) {
-					// Initiate resetting procedure:
-					// (Reset state and initiate a new connection)
-					// Renumber nr/ns on any unsent or unacknowledged I frames and queue for retransmit
-					// Cancel all timers and reset counts
+					this.connect();
+					response = false;
 					break;
-				} else if(state.connection&CONNECTING) {
-					// If connecting, cancel connection attempt and do not respond
-					// Set state.connection to DISCONNECTED
-					break;
-				} else if(state.connection&DISCONNECTING) {
-					// Set state.connection to DISCONNECTED
-					// cancel disconnection attempt and do not respond
+				} else if(state.connection&CONNECTING || state.connection&DISCONNECTING) {
+					state.connection = DISCONNECTED;
+					state.receiveSequence = 0;
+					state.sendSequence = 0;
+					state.remoteReceiveSequence = 0;
+					state.remoteBusy = false;
+					clearTimer("connect");
+					clearTimer("disconnect");
+					clearTimer("t1");
+					clearTimer("t3");
+					response = false;
+					this.emit("connection", false);
 					break;
 				}
 				break;
 				
 			case ax25.Defs.U_FRAME_FRMR:
 				if(state.connection&CONNECTED) {
-					// Initiate resetting procedure:
-					// (Reset state and initiate a new connection)
-					// Renumber nr/ns on any unsent or unacknowledged I frames and queue for retransmit
-					// Cancel all timers and reset counts
+					this.connect();
+					response = false;
 					break;
 				}
 				
 			case ax25.Defs.S_FRAME_RR:
 				if(state.connection&CONNECTED) {
-					// If state.remoteBusy is true, set it back to false
-					// Discard any saved, transmitted I frames through packet.nr - 1
-					// Update state.remoteReceiveSequence
-					// Transmit any unsent I frames up to window size
-					// If there are no frames to transmit but packet.pollFinal is true, send an RR frame
+					if(state.remoteBusy)
+						state.remoteBusy = false;
+					receiveAcknowledgement(packet);
+					if(!drain() && packet.pollFinal)
+						response.type = ax25.Defs.S_FRAME_RR;
+					else
+						response = false;
 					break;
 				}
 				
 			case ax25.Defs.S_FRAME_RNR:
 				if(state.connection&CONNECTED) {
-					// Set state.remoteBusy to true
-					// Discard any saved, transmitted I frames through packet.nr - 1
-					// Update state.remoteReceiveSequence
-					// Cancel T1 RR poll event if any, reset T1 count
-					// Set an event to do an RR poll for remote status
+					state.remoteBusy = true;
+					receiveAcknowledgement(packet);
+					response = false;
+					// Set an RR poll event
 					break;
 				}
 				
 			case ax25.Defs.S_FRAME_REJ:
 				if(state.connection&CONNECTED) {
-					// Discard any saved, transmitted I frames through packet.nr - 1
-					// Update state.remoteReceiveSequence
-					// Retransmit any remaining sent and transmit any unsent I frames up to window size
-					// If there are no frames to transmit but packet.pollFinal is true, send an RR frame
+					receiveAcknowledgement(packet);
+					if(packet.pollFinal)
+						response.type = ax25.Defs.S_FRAME_RR;
+					else
+						response = false;
+					drain(true);
 					break;
 				}
 				
 			case ax25.Defs.I_FRAME:
 				if(state.connection&CONNECTED) {
-					// If packet.ns equals state.receiveSequence:
-					//  - increment state.receiveSequence
-					//  - send RR to acknowledge receipt, with PF set to same as packet
-					//  - emit data event with packet payload
-					// If packet.ns does not equal state.receiveSequence:
-					//  - send REJ with PF set to same as packet
-					// In any case, update state.remoteReceiveSequence and
-					// transmit any outstanding frames up to window size,
-					// setting a T1 RR poll timed event
+					if(packet.ns == state.receiveSequence) {
+						state.receiveSequence = (state.receiveSequence + 1) % 8;
+						response.type = ax25.Defs.S_FRAME_RR;
+						this.emit("data", packet.info);
+					} else {
+						response.type = ax25.Defs.S_FRAME_REJ;
+					}
+					receiveAcknowledgement();
+					doDrain = true;
 					break;
 				}
 				
@@ -212,6 +344,11 @@ var Session = function(args) {
 
 		if(response instanceof ax25.Packet)
 			emitPacket(response);
+
+		if(doDrainAll)
+			drain(true);
+		else if(doDrain)
+			drain();
 
 	}
 
