@@ -257,7 +257,7 @@ var Session = function(args) {
 						'pollFinal'				: false,
 						'command' 				: false,
 						'type'					: ax25.Defs.I_FRAME,
-						'info'					: info.splice(0, settings.packetLength);
+						'info'					: info.splice(0, settings.packetLength)
 					}
 				)
 			);
