@@ -173,7 +173,7 @@ var Session = function(args) {
 			return;
 		}
 
-		timers.connect = setTimeout(self.connect, timeout);
+		timers.connect = setTimeout(self.connect, settings.timeout);
 
 		emitPacket(
 			new ax25.packet(
