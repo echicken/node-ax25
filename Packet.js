@@ -1,4 +1,5 @@
-var ax25 = require("./index.js");
+var ax25 = require("./index.js"),
+	util = require("util");
 
 var Packet = function(args) {
 	
@@ -441,6 +442,24 @@ var Packet = function(args) {
 		}
 		
 		return frame;
+	}
+
+	this.log = function() {
+		var type = "", pid = "";
+		for(var def in ax25.Defs) {
+			if(ax25.Defs[def] == this.type && def.match(/MASK/) == null)
+				type = def;
+			else if(def.match(/^PID/) !== null && ax25.Defs[def] == this.pid)
+				pid = def.replace(/^PID_/, "");
+		}
+		return util.format(
+			"%s-%s -> %s-%s %s, C: %s, R: %s, PF: %s, Type: %s, PID: %s, %s",
+			this.sourceCallsign, this.sourceSSID,
+			this.destinationCallsign, this.destinationSSID,
+			(this.repeaterPath.length > 0) ? "(" + this.repeaterPath.join("->") + ")" : "",
+			this.command, this.response, this.pollFinal, type, pid,
+			(this.type == ax25.Defs.I_FRAME) ? "N(R): " + this.nr + ", N(S): " + this.ns : ""
+		);
 	}
 
 	if(typeof args != "undefined" && typeof args.frame != "undefined") {
