@@ -321,6 +321,7 @@ var Session = function(args) {
 		
 			case ax25.Defs.U_FRAME_SABM:
 				state.connection = CONNECTED;
+				console.log(state.connection);
 				state.receiveSequence = 0;
 				state.sendSequence = 0;
 				state.remoteReceiveSequence = 0;

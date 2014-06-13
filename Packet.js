@@ -336,7 +336,6 @@ var Packet = function(args) {
 			properties.sourceCallsign += String.fromCharCode(field[f]>>1);
 		field = frame.shift();
 		properties.sourceSSID = (field&ax25.Defs.A_SSID)>>1;
-//		properties.response = (field&ax25.Defs.A_CRH)>>7;
 
 		// Address Field: Repeater path
 		while(field&1 == 0) {
