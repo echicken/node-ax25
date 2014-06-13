@@ -156,6 +156,23 @@ var Packet = function(args) {
 			properties.response = (command) ? 0 : 1;
 		}
 	);
+
+	this.__defineGetter__(
+		"response",
+		function() {
+			return (properties.command == 1) ? false : true;
+		}
+	);
+
+	this.__defineSetter__(
+		"response",
+		function(response) {
+			if(typeof response != "boolean")
+				throw "ax25.Packet: Invalid response bit assignment (should be boolean.)";
+			properties.command = (response) ? 0 : 1;
+			properties.response = (response) ? 1: 0;
+		}
+	);
 	
 	/*	Assemble and return a control octet based on the properties of this
 		packet.  (Note that there is no corresponding setter - the control
