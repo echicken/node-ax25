@@ -332,7 +332,7 @@ var Session = function(args) {
 				renumber();
 				emit = ["connection", true];
 				response.type = ax25.Defs.U_FRAME_UA;
-				if(packet.pollFinal)
+				if(packet.command && packet.pollFinal)
 					response.pollFinal = true;
 				doDrainAll = true;
 				break;
@@ -367,6 +367,7 @@ var Session = function(args) {
 					clearTimer("disconnect");
 					response = false;
 				} else if(state.connection == CONNECTED) {
+					console.log("You are here");
 					this.connect();
 					response = false;
 				} else {
