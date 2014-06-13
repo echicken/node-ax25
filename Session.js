@@ -54,7 +54,6 @@ var Session = function(args) {
 				"error",
 				"ax25.Session: Private function 'emitPacket' - invalid packet."
 			);
-			console.log(packet);
 			return;
 		}
 		self.emit("packet",	packet);
@@ -321,7 +320,6 @@ var Session = function(args) {
 		
 			case ax25.Defs.U_FRAME_SABM:
 				state.connection = CONNECTED;
-				console.log(state.connection);
 				state.receiveSequence = 0;
 				state.sendSequence = 0;
 				state.remoteReceiveSequence = 0;
@@ -371,7 +369,6 @@ var Session = function(args) {
 					this.connect();
 					response = false;
 				} else {
-					console.log("You are here: " + state.connection + "/" + CONNECTED);
 					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = false;
 				}
