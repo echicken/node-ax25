@@ -308,7 +308,7 @@ var Session = function(args) {
 				'repeaterPath'			: properties.repeaterPath,
 				'nr'					: state.receiveSequence,
 				'ns'					: state.sendSequence,
-				'pollFinal'				: false,
+				'pollFinal'				: (packet.command && packet.pollFinal) ? true : false,
 				'command'				: (packet.command) ? false : true
 			}
 		);
