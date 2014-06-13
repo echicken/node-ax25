@@ -300,6 +300,22 @@ var Packet = function(args) {
 			properties.info = ax25.Utils.stringToByteArray(info);
 		}
 	);
+
+	this.__defineGetter__(
+		"sent",
+		function() {
+			return properties.sent;
+		}
+	);
+
+	this.__defineSetter__(
+		"sent",
+		function(sent) {
+			if(typeof sent != "boolean")
+				throw "ax25.Packet.sent: Value must be boolean.";
+			properties.sent = sent;
+		}
+	);
 	
 	this.disassemble = function(frame) {
 
