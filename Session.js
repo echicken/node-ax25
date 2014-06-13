@@ -419,7 +419,10 @@ var Session = function(args) {
 					if(state.remoteBusy)
 						state.remoteBusy = false;
 					receiveAcknowledgement(packet);
-					if(!drain() && packet.pollFinal && packet.command)
+					var sent = false;
+					if(packet.pollFinal && packet.response)
+						sent = drain(true);
+					if(!sent && packet.pollFinal && packet.command)
 						response.type = ax25.Defs.S_FRAME_RR;
 					else
 						response = false;
