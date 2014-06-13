@@ -1,3 +1,5 @@
+var util = require("util");
+
 var Utils = function() {
 
 	this.testCallsign = function(callsign) {

@@ -49,14 +49,15 @@ var Session = function(args) {
 	};
 
 	var emitPacket = function(packet) {
-		if(typeof packet == undefined || !(packet instanceof ax25.Packet)) {
+		if(typeof packet == "undefined" || !(packet instanceof ax25.Packet)) {
 			self.emit(
 				"error",
 				"ax25.Session: Private function 'emitPacket' - invalid packet."
 			);
+			console.log(packet);
 			return;
 		}
-		self.emit("packet",	packet.assemble());
+		self.emit("packet",	packet);
 	}
 
 	var clearTimer = function(timerName) {
@@ -64,7 +65,7 @@ var Session = function(args) {
 			clearTimeout(timers[timerName]);
 			timers[timerName] = false;
 		}
-		timers[timername + "Attempts"] = 0;
+		timers[timerName + "Attempts"] = 0;
 	}
 
 	var receiveAcknowledgement = function(packet) {
@@ -120,7 +121,7 @@ var Session = function(args) {
 		var ret = false;
 		for(var packet in state.sendBuffer) {
 			if(retransmit && state.sendBuffer[packet].sent) {
-				emitPacket(state.sendBuffer[packet].assemble());
+				emitPacket(state.sendBuffer[packet]);
 				ret = true;
 			} else if(
 				!state.sendBuffer[packet].sent
@@ -133,7 +134,8 @@ var Session = function(args) {
 			) {
 				state.sendBuffer[packet].ns = state.sendSequence;
 				state.sendBuffer[packet].nr = state.receiveSequence;
-				emitPacket(state.sendBuffer[packet].assemble());
+				emitPacket(state.sendBuffer[packet]);
+				state.sendBuffer[packet].sent = true;
 				state.sendSequence = (state.sendSequence + 1) % 8;
 				ret = true;
 			}
@@ -255,7 +257,7 @@ var Session = function(args) {
 						'sourceSSID'			: properties.localSSID,
 						'repeaterPath'			: properties.repeaterPath,
 						'pollFinal'				: false,
-						'command' 				: false,
+						'command' 				: true,
 						'type'					: ax25.Defs.I_FRAME,
 						'info'					: info.splice(0, settings.packetLength)
 					}
@@ -306,6 +308,7 @@ var Session = function(args) {
 
 		var doDrain = false;
 		var doDrainAll = false;
+		var emit = false;
 
 		switch(packet.type) {
 		
@@ -319,13 +322,13 @@ var Session = function(args) {
 				clearTimer("disconnect");
 				clearTimer("t1");
 				clearTimer("t3");
-				this.emit("connection", true);
+				emit = ["connection", true];
 				response.type = ax25.Defs.U_FRAME_UA;
 				doDrainAll = true;
 				break;
 
 			case ax25.Defs.U_FRAME_DISC:
-				if(state.connection&CONNECTED) {
+				if(state.connection == CONNECTED) {
 					state.connection = DISCONNECTED;
 					state.receiveSequence = 0;
 					state.sendSequence = 0;
@@ -335,31 +338,35 @@ var Session = function(args) {
 					clearTimer("disconnect");
 					clearTimer("t1");
 					clearTimer("t3");
-					this.emit("connection", false);
+					emit = ["connection", false];
 					response.type = ax25.Defs.U_FRAME_UA;
-					break;
+				} else {
+					response.type = ax25.Defs.U_FRAME_DM;
+					response.pollFinal = true;
 				}
+				break;
 				
 			case ax25.Defs.U_FRAME_UA:
-				if(state.connection&CONNECTING) {
+				if(state.connection == CONNECTING) {
 					state.connection = CONNECTED;
 					clearTimer("connect");
 					response = false;
 					doDrainAll = true;
-					break;
-				} else if(state.connection&DISCONNECTING) {
+				} else if(state.connection == DISCONNECTING) {
 					state.connection = DISCONNECTED;
 					clearTimer("disconnect");
 					response = false;
-					break;
-				} else if(state.connection&CONNECTED) {
+				} else if(state.connection == CONNECTED) {
 					this.connect();
 					response = false;
-					break;
+				} else {
+					response.type = ax25.Defs.U_FRAME_DM;
+					response.pollFinal = true;
 				}
+				break;
 				
 			case ax25.Defs.U_FRAME_UI:
-				this.emit("data", packet.info);
+				emit = ["data", packet.info];
 				if(packet.pollFinal) {
 					response.pollFinal = false;
 					response.type = (state.connection == CONNECTED) ? ax25.Defs.S_FRAME_RR : ax25.Defs.U_FRAME_DM;
@@ -369,11 +376,10 @@ var Session = function(args) {
 				break;
 				
 			case ax25.Defs.U_FRAME_DM:
-				if(state.connection&CONNECTED) {
+				if(state.connection == CONNECTED) {
 					this.connect();
 					response = false;
-					break;
-				} else if(state.connection&CONNECTING || state.connection&DISCONNECTING) {
+				} else if(state.connection == CONNECTING || state.connection == DISCONNECTING) {
 					state.connection = DISCONNECTED;
 					state.receiveSequence = 0;
 					state.sendSequence = 0;
@@ -384,67 +390,84 @@ var Session = function(args) {
 					clearTimer("t1");
 					clearTimer("t3");
 					response = false;
-					this.emit("connection", false);
-					break;
+					emit = ["connection", false];
+				} else {
+					response.type = ax25.Defs.U_FRAME_DM;
+					response.pollFinal = true;
 				}
 				break;
 				
 			case ax25.Defs.U_FRAME_FRMR:
-				if(state.connection&CONNECTED) {
+				if(state.connection == CONNECTED) {
 					this.connect();
 					response = false;
-					break;
+				} else {
+					response.type = ax25.Defs.U_FRAME_DM;
+					response.pollFinal = true;
 				}
+				break;
 				
 			case ax25.Defs.S_FRAME_RR:
-				if(state.connection&CONNECTED) {
+				if(state.connection == CONNECTED) {
 					if(state.remoteBusy)
 						state.remoteBusy = false;
 					receiveAcknowledgement(packet);
-					if(!drain() && packet.pollFinal)
+					if(!drain() && packet.pollFinal && packet.command)
 						response.type = ax25.Defs.S_FRAME_RR;
 					else
 						response = false;
-					break;
+				} else {
+					response.type = ax25.Defs.U_FRAME_DM;
+					response.pollFinal = true;
 				}
+				break;
 				
 			case ax25.Defs.S_FRAME_RNR:
-				if(state.connection&CONNECTED) {
+				if(state.connection == CONNECTED) {
 					state.remoteBusy = true;
 					receiveAcknowledgement(packet);
 					response = false;
 					timers.t1 = setTimeout(poll, settings.timeout);
-					break;
+				} else {
+					response.type = ax25.Defs.U_FRAME_DM;
+					response.pollFinal = true;
 				}
+				break;
 				
 			case ax25.Defs.S_FRAME_REJ:
-				if(state.connection&CONNECTED) {
+				if(state.connection == CONNECTED) {
 					receiveAcknowledgement(packet);
 					if(packet.pollFinal)
 						response.type = ax25.Defs.S_FRAME_RR;
 					else
 						response = false;
 					drain(true);
-					break;
+				} else {
+					response.type = ax25.Defs.U_FRAME_DM;
+					response.pollFinal = true;
 				}
+				break;
 				
 			case ax25.Defs.I_FRAME:
-				if(state.connection&CONNECTED) {
+				if(state.connection == CONNECTED) {
 					if(packet.ns == state.receiveSequence) {
 						state.receiveSequence = (state.receiveSequence + 1) % 8;
+						response.nr = state.receiveSequence;
 						response.type = ax25.Defs.S_FRAME_RR;
-						this.emit("data", packet.info);
+						emit = ["data", packet.info];
 					} else {
 						response.type = ax25.Defs.S_FRAME_REJ;
 					}
-					receiveAcknowledgement();
+					receiveAcknowledgement(packet);
 					doDrain = true;
-					break;
+				} else {
+					response.type = ax25.Defs.U_FRAME_DM;
+					response.pollFinal = true;
 				}
+				break;
 				
 			default:
-				response.type = ax25.Defs.U_FRAME_DM;
-				response.pollFinal = true;
+				response = false;
 				break;
 				
 		}
@@ -456,6 +479,9 @@ var Session = function(args) {
 			drain(true);
 		else if(doDrain)
 			drain();
+
+		if(Array.isArray(emit) && emit.length == 2)
+			this.emit(emit[0], emit[1]);
 
 	}
 
