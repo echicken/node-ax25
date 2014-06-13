@@ -308,7 +308,7 @@ var Session = function(args) {
 				'repeaterPath'			: properties.repeaterPath,
 				'nr'					: state.receiveSequence,
 				'ns'					: state.sendSequence,
-				'pollFinal'				: (packet.command && packet.pollFinal) ? true : false,
+				'pollFinal'				: false,
 				'command'				: (packet.command) ? false : true
 			}
 		);
@@ -332,6 +332,8 @@ var Session = function(args) {
 				renumber();
 				emit = ["connection", true];
 				response.type = ax25.Defs.U_FRAME_UA;
+				if(packet.pollFinal)
+					response.pollFinal = true;
 				doDrainAll = true;
 				break;
 
@@ -420,14 +422,14 @@ var Session = function(args) {
 					if(state.remoteBusy)
 						state.remoteBusy = false;
 					receiveAcknowledgement(packet);
-					var sent = false;
-					if(packet.pollFinal && packet.response)
-						sent = drain(true);
-					if(!sent && packet.pollFinal && packet.command)
+					if(packet.command && packet.pollFinal) {
 						response.type = ax25.Defs.S_FRAME_RR;
-					else
+						response.pollFinal = true;
+					} else {
 						response = false;
-				} else {
+					}
+					doDrainAll = true;
+				} else if(packet.command) {
 					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = true;
 				}
@@ -437,9 +439,14 @@ var Session = function(args) {
 				if(state.connection == CONNECTED) {
 					state.remoteBusy = true;
 					receiveAcknowledgement(packet);
-					response = false;
+					if(packet.command && packet.pollFinal) {
+						response.type = ax25.Defs.S_FRAME_RR;
+						response.pollFinal = true;
+					} else {
+						response = false;
+					}
 					timers.t1 = setTimeout(poll, settings.timeout);
-				} else {
+				} else if(packet.command) {
 					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = true;
 				}
@@ -448,10 +455,12 @@ var Session = function(args) {
 			case ax25.Defs.S_FRAME_REJ:
 				if(state.connection == CONNECTED) {
 					receiveAcknowledgement(packet);
-					if(packet.pollFinal)
+					if(packet.command && packet.pollFinal) {
 						response.type = ax25.Defs.S_FRAME_RR;
-					else
+						response.pollFinal = true;
+					} else {
 						response = false;
+					}
 					drain(true);
 				} else {
 					response.type = ax25.Defs.U_FRAME_DM;
@@ -469,9 +478,11 @@ var Session = function(args) {
 					} else {
 						response.type = ax25.Defs.S_FRAME_REJ;
 					}
+					if(packet.pollFinal)
+						response.pollFinal = true;
 					receiveAcknowledgement(packet);
 					doDrain = true;
-				} else {
+				} else if(packet.command) {
 					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = true;
 				}
