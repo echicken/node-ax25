@@ -372,7 +372,8 @@ var Session = function(args) {
 					response = false;
 				} else {
 					response.type = ax25.Defs.U_FRAME_DM;
-					response.pollFinal = true;
+//					response.pollFinal = true;
+					response.pollFinal = false;
 				}
 				break;
 				
