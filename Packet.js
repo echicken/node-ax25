@@ -153,7 +153,6 @@ var Packet = function(args) {
 			if(typeof command != "boolean")
 				throw "ax25.Packet: Invalid command bit assignment (should be boolean.)";
 			properties.command = (command) ? 1 : 0;
-			properties.response = (command) ? 0 : 1;
 		}
 	);
 
@@ -170,7 +169,6 @@ var Packet = function(args) {
 			if(typeof response != "boolean")
 				throw "ax25.Packet: Invalid response bit assignment (should be boolean.)";
 			properties.command = (response) ? 0 : 1;
-			properties.response = (response) ? 1: 0;
 		}
 	);
 	
@@ -322,7 +320,7 @@ var Packet = function(args) {
 			properties.sourceCallsign += String.fromCharCode(field[f]>>1);
 		field = frame.shift();
 		properties.sourceSSID = (field&ax25.Defs.A_SSID)>>1;
-		properties.response = (field&ax25.Defs.A_CRH)>>7;
+//		properties.response = (field&ax25.Defs.A_CRH)>>7;
 
 		// Address Field: Repeater path
 		while(field&1 == 0) {
@@ -406,7 +404,7 @@ var Packet = function(args) {
 			);
 		}
 		frame.push(
-			(properties.response<<7)
+			((properties.command^1)<<7)
 			|
 			(properties.sourceSSID<<1)
 			|
