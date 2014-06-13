@@ -464,7 +464,7 @@ var Packet = function(args) {
 	this.log = function() {
 		var type = "", pid = "";
 		for(var def in ax25.Defs) {
-			if(ax25.Defs[def] == this.type && def.match(/MASK/) == null)
+			if(def.match(/^PID/) == null && ax25.Defs[def] == this.type && def.match(/MASK/) == null)
 				type = def;
 			else if(def.match(/^PID/) !== null && ax25.Defs[def] == this.pid)
 				pid = def.replace(/^PID_/, "");
