@@ -357,6 +357,7 @@ var Session = function(args) {
 				break;
 				
 			case ax25.Defs.U_FRAME_UA:
+				console.log(state.connection);
 				if(state.connection == CONNECTING) {
 					state.connection = CONNECTED;
 					clearTimer("connect");
@@ -367,12 +368,10 @@ var Session = function(args) {
 					clearTimer("disconnect");
 					response = false;
 				} else if(state.connection == CONNECTED) {
-					console.log("You are here");
 					this.connect();
 					response = false;
 				} else {
 					response.type = ax25.Defs.U_FRAME_DM;
-//					response.pollFinal = true;
 					response.pollFinal = false;
 				}
 				break;
