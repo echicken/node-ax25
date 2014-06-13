@@ -61,7 +61,7 @@ var Session = function(args) {
 
 	var clearTimer = function(timerName) {
 		if(typeof timers[timerName] != "undefined" && timers[timerName]) {
-			clearInterval(timers[timerName]);
+			clearTimeout(timers[timerName]);
 			timers[timerName] = false;
 		}
 		timers[timername + "Attempts"] = 0;
@@ -76,22 +76,70 @@ var Session = function(args) {
 		clearTimer("t1");
 	}
 
+	var poll = function() {
+		emitPacket(
+			new ax25.Packet(
+				{	'destinationCallsign'	: properties.remoteCallsign,
+					'destinationSSID'		: properties.remoteSSID,
+					'sourceCallsign'		: properties.localCallsign,
+					'sourceSSID'			: properties.localSSID,
+					'repeaterPath'			: properties.repeaterPath,
+					'nr'					: state.receiveSequence,
+					'ns'					: state.sendSequence,
+					'pollFinal'				: true,
+					'command' 				: true,
+					'type'					: ax25.Defs.S_FRAME_RR
+				}
+			)
+		);		
+	}
+
 	var t1Poll = function() {
-		// if t1Attempts is at retry limit, clear this interval
-		// and then do this.connect() (reset the link)
-		// else increment t1Attempts and emit RR with P set true
+		if(timers.t1Attempts == settings.retries) {
+			clearTimer("t1");
+			self.connect();
+			return;
+		}
+		timers.t1Attempts++;
+		poll();
 	}
 
 	var t3Poll = function() {
-		// if t3Attempts is at retry limit, clear this interval
+		if(typeof timers.t1 != "boolean")
+			return;
+		if(timers.t3Attempts == settings.retries) {
+			clearTimer("t3");
+			self.disconnect();
+			return;
+		}
 	}
 
 	var drain = function(retransmit) {
+		if(typeof retransmit == "undefined")
+			retransmit = false;
 		var ret = false;
-		// cycle through sendbuffer
-		// if retransmit is on, resend any sent packets
-		// emit packets until distance between ns and remote nr == 7 or all packets are sent
-		// If any packets were sent, set an RR poll event
+		for(var packet in state.sendBuffer) {
+			if(retransmit && state.sendBuffer[packet].sent) {
+				emitPacket(state.sendBuffer[packet].assemble());
+				ret = true;
+			} else if(
+				!state.sendBuffer[packet].sent
+				&&
+				ax25.Utils.distanceBetween(
+					state.sendSequence,
+					state.remoteReceiveSequence,
+					settings.windowSize + 1
+				) < settings.windowSize
+			) {
+				state.sendBuffer[packet].ns = state.sendSequence;
+				state.sendBuffer[packet].nr = state.receiveSequence;
+				emitPacket(state.sendBuffer[packet].assemble());
+				state.sendSequence = (state.sendSequence + 1) % 8;
+				ret = true;
+			}
+		}
+		if(ret)
+			timers.t1 = setTimeout(poll, settings.timeout);
 		return ret;
 	}
 
@@ -117,14 +165,13 @@ var Session = function(args) {
 		timers.connectAttempts++;
 		if(timers.connectAttempts == settings.retries) {
 			if(timers.connect)
-				clearInterval(timers.connect);
+				clearTimeout(timers.connect);
 			timers.connectAttempts = 0;
 			state.connection = DISCONNECTED;
 			return;
 		}
 
-		if(!timers.connect)
-			timers.connect = setInterval(self.connect, timeout);
+		timers.connect = setTimeout(self.connect, timeout);
 
 		emitPacket(
 			new ax25.packet(
@@ -148,27 +195,82 @@ var Session = function(args) {
 			state.sendBuffer[p].sent = false;
 		}
 		
-		// Set connect retry event
+		timers.connect = setTimeout(self.connect, settings.timeout);
 
 	}
 
 	this.disconnect = function() {
-		// Send a DISC frame
-		// set state.connection to DISCONNECTING
-		// set a disconnect retry event
+		clearTimer('connect');
+		clearTimer('t1');
+		clearTimer('t3');
+		if(timer.disconnectAttempts == settings.retries) {
+			clearTimer('disconnect');
+			emitPacket(
+				new ax25.packet(
+					{	'destinationCallsign'	: properties.remoteCallsign,
+						'destinationSSID'		: properties.remoteSSID,
+						'sourceCallsign'		: properties.localCallsign,
+						'sourceSSID'			: properties.localSSID,
+						'repeaterPath'			: properties.repeaterPath,
+						'nr'					: state.receiveSequence,
+						'ns'					: state.sendSequence,
+						'pollFinal'				: false,
+						'command' 				: false,
+						'type'					: ax25.Defs.U_FRAME_DM
+					}
+				)
+			);
+			state.connection = DISCONNECTED;
+			return;
+		}
+		timer.disconnectAttempts++;
+		state.connection = DISCONNECTING;
+		emitPacket(
+			new ax25.packet(
+				{	'destinationCallsign'	: properties.remoteCallsign,
+					'destinationSSID'		: properties.remoteSSID,
+					'sourceCallsign'		: properties.localCallsign,
+					'sourceSSID'			: properties.localSSID,
+					'repeaterPath'			: properties.repeaterPath,
+					'nr'					: state.receiveSequence,
+					'ns'					: state.sendSequence,
+					'pollFinal'				: true,
+					'command' 				: true,
+					'type'					: ax25.Defs.U_FRAME_DISC
+				}
+			)
+		);
+		timers.disconnect = setTimeout(self.disconnect, settings.timeout);
 	}
 
 	this.send = function(info) {
-		// check that info is an array (should really move to Buffers or Uint8Array)
-		// while info.length > 0, info.splice 0 through settings.packetLength and stuff
-		// the result into the info field of a new I frame, stuff each I frame into the sendBuffer
-		// call drain()
+		if(!Array.isArray(info))
+			this.emit("error", "ax25.Session.send: Argument must be an array.");
+		while(info.length > 0) {
+			state.sendBuffer.push(
+				new ax25.Packet(
+					{	'destinationCallsign'	: properties.remoteCallsign,
+						'destinationSSID'		: properties.remoteSSID,
+						'sourceCallsign'		: properties.localCallsign,
+						'sourceSSID'			: properties.localSSID,
+						'repeaterPath'			: properties.repeaterPath,
+						'pollFinal'				: false,
+						'command' 				: false,
+						'type'					: ax25.Defs.I_FRAME,
+						'info'					: info.splice(0, settings.packetLength);
+					}
+				)
+			);
+		}
+		drain();
 	}
 
 	this.sendString = function(str) {
-		// check that str is a string
-		// convert str to array of bytes
-		// this.send(str)
+		if(typeof str != "string")
+			this.emit("error", "ax25.Session.sendString: Argument must be a string.");
+		if(str.length < 1)
+			this.emit("error", "ax25.Session.sendString: Argument of zero length.");
+		this.send(ax25.Utils.stringToByteArray(str));
 	}
 
 	this.receive = function(packet) {
@@ -311,7 +413,7 @@ var Session = function(args) {
 					state.remoteBusy = true;
 					receiveAcknowledgement(packet);
 					response = false;
-					// Set an RR poll event
+					timers.t1 = setTimeout(poll, settings.timeout);
 					break;
 				}
 				

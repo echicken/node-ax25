@@ -14,7 +14,8 @@ var Packet = function(args) {
 		'nr'					: 0,
 		'ns'					: 0,
 		'pid'					: ax25.Defs.PID_NONE,
-		'info'					: []
+		'info'					: [],
+		'sent'					: false // Relevant only to ax25.Session
 	};
 	
 	this.__defineGetter__(
