@@ -283,11 +283,12 @@ var Session = function(args) {
 
 	this.receive = function(packet) {
 
-		if(!self.initialized) {
+		if(!state.initialized) {
 			properties.remoteCallsign = packet.sourceCallsign;
 			properties.remoteSSID = packet.sourceSSID;
 			properties.localCallsign = packet.destinationCallsign;
 			properties.localSSID = packet.destinationSSID;
+			state.initialized = true;
 		}
 
 		properties.repeaterPath = [];
