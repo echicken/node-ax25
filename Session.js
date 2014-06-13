@@ -119,7 +119,7 @@ var Session = function(args) {
 		if(typeof retransmit == "undefined")
 			retransmit = false;
 		var ret = false;
-		for(var packet in state.sendBuffer) {
+		for(var packet = 0; packet < state.sendBuffer.length; packet++) {
 			if(retransmit && state.sendBuffer[packet].sent) {
 				emitPacket(state.sendBuffer[packet]);
 				ret = true;
@@ -129,8 +129,10 @@ var Session = function(args) {
 				ax25.Utils.distanceBetween(
 					state.sendSequence,
 					state.remoteReceiveSequence,
-					settings.windowSize + 1
-				) < settings.windowSize
+					8
+				) < 7
+				&&
+				packet < settings.windowSize
 			) {
 				state.sendBuffer[packet].ns = state.sendSequence;
 				state.sendBuffer[packet].nr = state.receiveSequence;
