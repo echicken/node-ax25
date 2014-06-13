@@ -370,7 +370,7 @@ var Session = function(args) {
 					this.connect();
 					response = false;
 				} else {
-					console.log("You are here: " + state.connection);
+					console.log("You are here: " + state.connection + "/" + CONNECTED);
 					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = false;
 				}
