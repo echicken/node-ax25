@@ -464,7 +464,7 @@ var Packet = function(args) {
 	this.log = function() {
 		var type = "", pid = "";
 		for(var def in ax25.Defs) {
-			if(def.match(/^PID/) == null && ax25.Defs[def] == this.type && def.match(/MASK/) == null)
+			if(def.match(/^PID/) == null && ax25.Defs[def] == this.type && def.match(/MASK$/) == null)
 				type = def;
 			else if(def.match(/^PID/) !== null && ax25.Defs[def] == this.pid)
 				pid = def.replace(/^PID_/, "");
@@ -475,7 +475,8 @@ var Packet = function(args) {
 			this.destinationCallsign, this.destinationSSID,
 			(this.repeaterPath.length > 0) ? "(" + this.repeaterPath.join("->") + ")" : "",
 			this.command, this.response, this.pollFinal, type, pid,
-			(this.type == ax25.Defs.I_FRAME) ? "N(R): " + this.nr + ", N(S): " + this.ns : ""
+			(type == "I_FRAME" || type.match(/^S_FRAME.*/) !== null)
+				? "N(R): " + this.nr + ", N(S): " + this.ns : ""
 		);
 	}
 
