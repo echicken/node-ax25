@@ -2,10 +2,10 @@ var util		= require("util");
 var events		= require("events");
 var ax25		= require("./index.js");
 
-var DISCONNECTED 	= (1<<0),
-	CONNECTED 		= (1<<1),
-	CONNECTING 		= (1<<2),
-	DISCONNECTING 	= (1<<3);
+var DISCONNECTED 	= 1,
+	CONNECTED 		= 2,
+	CONNECTING 		= 3,
+	DISCONNECTING 	= 4;
 
 var Session = function(args) {
 
@@ -370,7 +370,7 @@ var Session = function(args) {
 				} else if(state.connection == CONNECTED) {
 					this.connect();
 					response = false;
-				} else if(state.connection == DISCONNECTED) {
+				} else {
 					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = false;
 				}
