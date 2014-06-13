@@ -370,7 +370,7 @@ var Session = function(args) {
 				} else if(state.connection == CONNECTED) {
 					this.connect();
 					response = false;
-				} else {
+				} else if(state.connection == DISCONNECTED) {
 					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = false;
 				}
