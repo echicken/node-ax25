@@ -147,6 +147,14 @@ var Session = function(args) {
 		return ret;
 	}
 
+	var renumber = function() {
+		for(var p = 0; p < state.sendBuffer.length; p++) {
+			state.sendBuffer[p].ns = p % 8;
+			state.sendBuffer[p].nr = 0;
+			state.sendBuffer[p].sent = false;
+		}
+	}
+
 	this.connect = function() {
 
 		if(!state.initialized) {
@@ -178,7 +186,7 @@ var Session = function(args) {
 		timers.connect = setTimeout(self.connect, settings.timeout);
 
 		emitPacket(
-			new ax25.packet(
+			new ax25.Packet(
 				{	'destinationCallsign'	: properties.remoteCallsign,
 					'destinationSSID'		: properties.remoteSSID,
 					'sourceCallsign'		: properties.localCallsign,
@@ -193,11 +201,7 @@ var Session = function(args) {
 			)
 		);
 
-		for(var p = 0; p < state.sendBuffer.length; p++) {
-			state.sendBuffer[p].ns = p % 8;
-			state.sendBuffer[p].nr = 0;
-			state.sendBuffer[p].sent = false;
-		}
+		renumber();
 		
 		timers.connect = setTimeout(self.connect, settings.timeout);
 
@@ -324,6 +328,7 @@ var Session = function(args) {
 				clearTimer("disconnect");
 				clearTimer("t1");
 				clearTimer("t3");
+				renumber();
 				emit = ["connection", true];
 				response.type = ax25.Defs.U_FRAME_UA;
 				doDrainAll = true;
