@@ -25,11 +25,19 @@ The node-ax25 module is made to interface with a KISS TNC over a serial port.  (
 
 - [ax25.kissTNC](#ax25.kissTNC)
 	- Provides an API for communicating with a KISS TNC on a serial port
+		- [Events](#ax25.kissTNC.Events)
+		- [Properties](#ax25.kissTNC.Properties)
+		- [Methods](#ax25.kissTNC.Methods)
 - [ax25.Packet](#ax25.Packet)
 	- Provides an API for crafting outbound AX.25 packets
 	- Provides an API for disassembling and inspecting inbound AX.25 packets
+		- [Properties](#ax25.Packet.Properties)
+		- [Methods](#ax25.Packet.Methods)
 - [ax25.Session](#ax25.Session)
 	- Provides an API for stateful connections with other packet radio stations
+		- [Events](#ax25.Session.Events)
+		- [Properties](#ax25.Session.Properties)
+		- [Methods](#ax25.Session.Methods)
 
 ---
 <a name="ax25.kissTNC"></a>
@@ -74,6 +82,7 @@ tnc.on(
 );
 ```
 
+<a name="ax25.kissTNC.Events"></a>
 #####Events:
 
 * **opened** - The connection to the TNC has been opened successfully.
@@ -82,6 +91,7 @@ tnc.on(
 * **frame** - A KISS frame has been received from the TNC (the enclosed AX.25 frame, less start/stop flags and FCS, will be supplied as an argument to your callback function.)
 * **sent** - A KISS frame was sent to the TNC (the number of bytes sent to the TNC will be supplied as an argument to your callback function.  Not very useful.)
 
+<a name="ax25.kissTNC.Properties"></a>
 #####Properties:
 
 * **serialPort** - eg. "COM1", or "/dev/ttyUSB0". (String)
@@ -92,6 +102,7 @@ tnc.on(
 * **txTail** - Time to keep transmitting after packet is sent, in milliseconds (deprecated.) (Number)
 * **fullDuplex** - Boolean, default: false. (Boolean)
 
+<a name="ax25.kissTNC.Methods"></a>
 #####Methods:
 
 * **send(frame)** - Sends an AX.25 frame to the TNC to be sent out over the air.  (*frame* must be an array of bytes, representing an AX.25 frame less the flags and FCS, eg. the return value of *ax25.Packet.assemble()*.)
@@ -191,6 +202,7 @@ tnc.on(
 );
 ```
 
+<a name="ax25.Packet.Properties"></a>
 #####Properties
 
 * **destinationCallsign** - The destination callsign, up to six alphanumerics. (String)
@@ -208,6 +220,7 @@ tnc.on(
 * **info** - The information field of an I or UI frame. (Array)
 * **infoString** - The information field of an I or UI frame, as a string. (String)
 
+<a name="ax25.Packet.Methods"></a>
 #####Methods
 
 * **disassemble(frame)** - Where *frame* is an array of numbers representing an AX.25 frame (eg. the value provided by the ax25.kissTNC *frame* event,) disassemble *frame* and populate the above properties with the values found therein. (Note: if ax25.Packet is instantiated with a *frame* argument, this will happen automatically.) (Void)
@@ -216,6 +229,15 @@ tnc.on(
 <a name="ax25.Session"></a>
 ####ax25.Session
 
+<a name="ax25.Session.Events"></a>
+#####Events
+
+* **packet** - An outgoing packet is ready for transmission.  Your callback will be provided with an ax25.Packet object which can be sent with *ax25.kissTNC*.send(*packet*.assemble());
+* **data** - Data (I or UI frame payload) has been received from the remote station.  Your callback will be provided with an array of uint 8 bytes. (ax25.Utils.byteArrayToString(arr) can turn this into a string for your convenience.)
+* **connection** - The connection state has changed.  Your callback will be provided with a boolean value.  *True* means that a connection has been established.  *False* means that the connection has been closed.  (Note that the connection may occasionally be re-established without a disconnection happening as part of a reset procedure.)
+* **error** - Something done borked.  Your callback will be provided with a helpful textual error message.
+
+<a name="ax25.Session.Properties"></a>
 #####Properties
 
 * **remoteCallsign** - The remote station's callsign, up to six alphanumerics. (String)
@@ -228,6 +250,7 @@ tnc.on(
 * **retries** - How many times to poll the other station for a response before giving up.  Default: 5.  You may wish to raise this value if using a very busy frequency, etc. (Number)
 * ** hBaud** - The baud rate of over-the-air communications.  Default: 1200.  It's recommended that you set this if your value differs from the default, as polling intervals and other timeouts are calculated based on this figure, among others. (Number)
 
+<a name="ax25.Session.Methods"></a>
 #####Methods
 
 * **connect()** - Opens a connection to another station.  Remote and Local callsign and SSID properties must be set first. (Void)
@@ -235,10 +258,3 @@ tnc.on(
 * **send(info)** - Send array of bytes (uint 8) 'info' to the remote station. (Void)  (Note: 'info' is just a plain old Array().  We may switch to Uint8Array or Buffer at some point.)
 * **sendString(str)** - Send string 'str' to the remote station. (Void)
 * **receive(packet)** - Process and respond to the received (and disassembled) packet 'packet'. (Void)
-
-#####Events
-
-* **packet** - An outgoing packet is ready for transmission.  Your callback will be provided with an ax25.Packet object which can be sent with *ax25.kissTNC*.send(*packet*.assemble());
-* **data** - Data (I or UI frame payload) has been received from the remote station.  Your callback will be provided with an array of uint 8 bytes. (ax25.Utils.byteArrayToString(arr) can turn this into a string for your convenience.)
-* **connection** - The connection state has changed.  Your callback will be provided with a boolean value.  *True* means that a connection has been established.  *False* means that the connection has been closed.  (Note that the connection may occasionally be re-established without a disconnection happening as part of a reset procedure.)
-* **error** - Something done borked.  Your callback will be provided with a helpful textual error message.
