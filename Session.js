@@ -1,7 +1,8 @@
-var util		= require("util");
-var events		= require("events");
-var ax25		= require("./index.js");
+var util	= require("util"),
+	events	= require("events"),
+	ax25	= require("./index.js");
 
+// Magic numbers for state.connection
 var DISCONNECTED 	= 1,
 	CONNECTED 		= 2,
 	CONNECTING 		= 3,
@@ -170,19 +171,14 @@ var Session = function(args) {
 		state.remoteBusy = false;
 
 		clearTimer("disconnect");
-		clearTimer("t1");
 		clearTimer("t3");
 
 		timers.connectAttempts++;
 		if(timers.connectAttempts == settings.retries) {
-			if(timers.connect)
-				clearTimeout(timers.connect);
 			timers.connectAttempts = 0;
 			state.connection = DISCONNECTED;
 			return;
 		}
-
-		timers.connect = setTimeout(self.connect, settings.timeout);
 
 		emitPacket(
 			new ax25.Packet(
@@ -313,7 +309,6 @@ var Session = function(args) {
 		);
 
 		var doDrain = false;
-		var doDrainAll = false;
 		var emit = false;
 
 		switch(packet.type) {
@@ -333,7 +328,7 @@ var Session = function(args) {
 				response.type = ax25.Defs.U_FRAME_UA;
 				if(packet.command && packet.pollFinal)
 					response.pollFinal = true;
-				doDrainAll = true;
+				doDrain = true;
 				break;
 
 			case ax25.Defs.U_FRAME_DISC:
@@ -360,7 +355,7 @@ var Session = function(args) {
 					state.connection = CONNECTED;
 					clearTimer("connect");
 					response = false;
-					doDrainAll = true;
+					doDrain = true;
 				} else if(state.connection == DISCONNECTING) {
 					state.connection = DISCONNECTED;
 					clearTimer("disconnect");
@@ -427,7 +422,7 @@ var Session = function(args) {
 					} else {
 						response = false;
 					}
-					doDrainAll = true;
+					doDrain = true;
 				} else if(packet.command) {
 					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = true;
@@ -496,9 +491,7 @@ var Session = function(args) {
 		if(response instanceof ax25.Packet)
 			emitPacket(response);
 
-		if(doDrainAll)
-			drain(true);
-		else if(doDrain)
+		if(doDrain)
 			drain();
 
 		if(Array.isArray(emit) && emit.length == 2)
