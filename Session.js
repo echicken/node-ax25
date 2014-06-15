@@ -206,7 +206,9 @@ var Session = function(args) {
 
 	var getTimeout = function() {
 		return Math.floor(
-			(((600 + (settings.packetLength * 8)) / settings.hBaud) * 2) * 1000
+			(	(((600 + (settings.packetLength * 8)) / settings.hBaud) * 2)
+				* 1000
+			) * (properties.repeaterPath.length > 0) ? properties.repeaterPath.length : 1
 		);
 	}
 
