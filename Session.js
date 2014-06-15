@@ -61,6 +61,8 @@ var Session = function(args) {
 		function(value) {
 			if(!ax25.Utils.testCallsign(value))
 				self.emit("error", "ax25.Session.localCallsign: Invalid callsign.");
+			if(state.connection != DISCONNECTED)
+				self.emit("error", "ax25.Session: Addresses cannot be changed unless disconnected.");
 			properties.localCallsign = value;
 		}
 	);
@@ -77,6 +79,8 @@ var Session = function(args) {
 		function(value) {
 			if(typeof value != "number" || value < 0 || value > 15)
 				self.emit("error", "ax25.Session.localSSID: Invalid SSID.");
+			if(state.connection != DISCONNECTED)
+				self.emit("error", "ax25.Session: Addresses cannot be changed unless disconnected.");
 			properties.localSSID = value;
 		}
 	);
@@ -93,6 +97,8 @@ var Session = function(args) {
 		function(value) {
 			if(!ax25.Utils.testCallsign(value))
 				self.emit("error", "ax25.Session.remoteCallsign: Invalid callsign.");
+			if(state.connection != DISCONNECTED)
+				self.emit("error", "ax25.Session: Addresses cannot be changed unless disconnected.");
 			properties.remoteCallsign = value;
 		}
 	);
@@ -109,6 +115,8 @@ var Session = function(args) {
 		function(value) {
 			if(typeof value != "number" || value < 0 || value > 15)
 				self.emit("error", "ax25.Session.remoteSSID: Invalid SSID.");
+			if(state.connection != DISCONNECTED)
+				self.emit("error", "ax25.Session: Addresses cannot be changed unless disconnected.");
 			properties.remoteSSID = value;
 		}
 	);
