@@ -24,8 +24,12 @@ The node-ax25 module is made to interface with a KISS TNC over a serial port.  (
 ####The Stack
 
 - [ax25.kissTNC](#ax25.kissTNC)
+	- Provides an API for communicating with a KISS TNC on a serial port
 - [ax25.Packet](#ax25.Packet)
+	- Provides an API for crafting outbound AX.25 packets
+	- Provides an API for disassembling and inspecting inbound AX.25 packets
 - [ax25.Session](#ax25.Session)
+	- Provides an API for stateful connections with other packet radio stations
 
 ---
 <a name="ax25.kissTNC"></a>
