@@ -248,7 +248,7 @@ tnc.on(
 * **windowSize** - Maximum number of unacknowledged I frames out at any given time, 1 - 7. Default: 7. (Number)
 * **packetLength** - Maximum packet payload size, in bytes, minimum of 1. Default: 256.  Smaller values such as 64 are best for crappy links.  The spec says 256 is the maximum, so don't expect most TNCs to support larger values. (Number)
 * **retries** - How many times to poll the other station for a response before giving up.  Default: 5.  You may wish to raise this value if using a very busy frequency, etc. (Number)
-* ** hBaud** - The baud rate of over-the-air communications.  Default: 1200.  It's recommended that you set this if your value differs from the default, as polling intervals and other timeouts are calculated based on this figure, among others. (Number)
+* **hBaud** - The baud rate of over-the-air communications.  Default: 1200.  It's recommended that you set this if your value differs from the default, as polling intervals and other timeouts are calculated based on this figure, among others. (Number)
 
 <a name="ax25.Session.Methods"></a>
 #####Methods
