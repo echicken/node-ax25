@@ -95,7 +95,8 @@ tnc.on(
 * **close()** - Close the connection to the TNC.
 * **exitKISS()** - Bring the TNC out of KISS mode (if your TNC has a terminal mode.)
 
-####ax25.Packet####
+<a name="ax25.Packet"></a>
+####ax25.Packet
 
 ```js
 var packet = new ax25.Packet({ 'frame' : frame });
@@ -208,7 +209,8 @@ tnc.on(
 * **disassemble(frame)** - Where *frame* is an array of numbers representing an AX.25 frame (eg. the value provided by the ax25.kissTNC *frame* event,) disassemble *frame* and populate the above properties with the values found therein. (Note: if ax25.Packet is instantiated with a *frame* argument, this will happen automatically.) (Void)
 * **assemble()** - When creating an outgoing frame, make a new ax25.Packet object, populate its properties as desired, then call *ax25.Packet*.assemble(), which will return an array of numbers representing an AX.25 frame (which can be supplied to ax25.kissTNC.send(frame).) (Array)
 
-####ax25.Session####
+<a name="ax25.Session"></a>
+####ax25.Session
 
 #####Properties
 
