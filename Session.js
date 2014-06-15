@@ -16,8 +16,8 @@ var Session = function(args) {
 	var settings = {
 		'windowSize' : 7,
 		'packetLength' : 256,
-		'timeout' : 5000,
-		'retries' : 5
+		'retries' : 5,
+		'hBaud' : 1200
 	};
 
 	var properties = {
@@ -48,6 +48,167 @@ var Session = function(args) {
 		't3' : false,
 		't3Attempts' : 0
 	};
+
+	this.__defineGetter__(
+		"localCallsign",
+		function() {
+			return properties.localCallsign;
+		}
+	);
+
+	this.__defineSetter__(
+		"localCallsign",
+		function(value) {
+			if(!ax25.Utils.testCallsign(value))
+				self.emit("error", "ax25.Session.localCallsign: Invalid callsign.");
+			properties.localCallsign = value;
+		}
+	);
+
+	this.__defineGetter__(
+		"localSSID",
+		function() {
+			return properties.localSSID;
+		}
+	);
+
+	this.__defineSetter__(
+		"localSSID",
+		function(value) {
+			if(typeof value != "number" || value < 0 || value > 15)
+				self.emit("error", "ax25.Session.localSSID: Invalid SSID.");
+			properties.localSSID = value;
+		}
+	);
+
+	this.__defineGetter__(
+		"remoteCallsign",
+		function() {
+			return properties.remoteCallsign;
+		}
+	);
+
+	this.__defineSetter__(
+		"remoteCallsign",
+		function(value) {
+			if(!ax25.Utils.testCallsign(value))
+				self.emit("error", "ax25.Session.remoteCallsign: Invalid callsign.");
+			properties.remoteCallsign = value;
+		}
+	);
+
+	this.__defineGetter__(
+		"remoteSSID",
+		function() {
+			return properties.remoteSSID;
+		}
+	);
+
+	this.__defineSetter__(
+		"remoteSSID",
+		function(value) {
+			if(typeof value != "number" || value < 0 || value > 15)
+				self.emit("error", "ax25.Session.remoteSSID: Invalid SSID.");
+			properties.remoteSSID = value;
+		}
+	);
+
+	this.__defineGetter__(
+		"repeaterPath",
+		function() {
+			return properties.repeaterPath;
+		}
+	);
+
+	this.__defineSetter__(
+		"repeaterPath",
+		function(value) {
+			if(!Array.isArray(value))
+				self.emit("error", "ax25.Session.repeaterPath must be an array.");
+			for(var r = 0; r < value.length; r++) {
+				if(typeof value[r] != "string")
+					self.emit("error", "ax25.Session.repeaterPath: Invalid element: " + value[r]);
+				var rr = value[r].split("-");
+				if(rr.length != 2)
+					self.emit("error", "ax25.Session.repeaterPath: Invalid element: " + rr[0]);
+				var callsign = rr[0].toUpperCase();
+				var SSID = Number(rr[1]);
+				if(!ax25.Utils.testCallsign(callsign) || isNaN(SSID) || SSID < 0 || SSID > 15)
+					self.emit("error", "ax25.Session.repeaterPath: Invalid element: " + value[r]);
+			}
+			properties.repeaterPath = value;
+		}
+	);
+
+	this.__defineGetter__(
+		"windowSize",
+		function() {
+			return settings.windowSize;
+		}
+	);
+
+	this.__defineSetter__(
+		"windowSize",
+		function(value) {
+			if(typeof value != "number" || value < 1 || value > 7)
+				self.emit("error", "ax25.Session.windowSize must be a number from 1 through 7.");
+			settings.windowSize = value;
+		}
+	);
+
+	this.__defineGetter__(
+		"packetLength",
+		function() {
+			return settings.packetLength;
+		}
+	);
+
+	this.__defineSetter__(
+		"packetLength",
+		function(value) {
+			if(typeof value != "number" || value < 1)
+				self.emit("error", "ax25.Session.packetLength must be a number >= 1.");
+			settings.packetLength = value;
+		}
+	);
+
+	this.__defineGetter__(
+		"retries",
+		function() {
+			return settings.retries;
+		}
+	);
+
+	this.__defineSetter__(
+		"retries",
+		function(value) {
+			if(typeof value != "number" || value < 1)
+				self.emit("error", "ax25.Session.retries must be a number >= 1.");
+			settings.retries = value;
+		}
+	);
+
+	this.__defineGetter__(
+		"hBaud",
+		function() {
+			return settings.hBaud;
+		}
+	);
+
+	this.__defineSetter__(
+		"hBaud",
+		function(value) {
+			if(typeof value != "number" || value < 1)
+				self.emit("error", "ax25.Session.hBaud must be a number >= 1.");
+			settings.hBaud = value;
+		}
+	);
+
+	var getTimeout = function() {
+		return Math.floor(
+			(((600 + (settings.packetLength * 8)) / settings.hBaud) * 2) * 1000
+		);
+	}
 
 	var emitPacket = function(packet) {
 		if(typeof packet == "undefined" || !(packet instanceof ax25.Packet)) {
@@ -143,7 +304,7 @@ var Session = function(args) {
 			}
 		}
 		if(ret)
-			timers.t1 = setTimeout(poll, settings.timeout);
+			timers.t1 = setTimeout(poll, getTimeout());
 		return ret;
 	}
 
@@ -198,7 +359,7 @@ var Session = function(args) {
 
 		renumber();
 		
-		timers.connect = setTimeout(self.connect, settings.timeout);
+		timers.connect = setTimeout(self.connect, getTimeout());
 
 	}
 
@@ -243,7 +404,7 @@ var Session = function(args) {
 				}
 			)
 		);
-		timers.disconnect = setTimeout(self.disconnect, settings.timeout);
+		timers.disconnect = setTimeout(self.disconnect, getTimeout());
 	}
 
 	this.send = function(info) {
@@ -439,7 +600,7 @@ var Session = function(args) {
 					} else {
 						response = false;
 					}
-					timers.t1 = setTimeout(poll, settings.timeout);
+					timers.t1 = setTimeout(poll, getTimeout());
 				} else if(packet.command) {
 					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = true;
