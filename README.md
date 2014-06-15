@@ -1,6 +1,6 @@
 #node-ax25
 
-A KISS &amp; AX.25 stack for node.js.
+A KISS &amp; AX.25 packet radio stack for node.js.
 
 ---
 

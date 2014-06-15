@@ -1,14 +1,17 @@
-{	"name" : "node-ax25",
-	"version" : "0.0.1",
-	"author" : "echicken <echicken@electronicchicken.com>",
-	"license" : "BSD-2-Clause",
-	"description" : "A KISS & AX.25 Stack for node.js",
+{	"name" : "ax25",
+	"version" : "1.0.0",
+	"license" : "BSD-3-Clause",
+	"description" : "A KISS & AX.25 packet radio stack for node.js.",
+	"author" : {
+		"name" : "Derek Mullin",
+		"email" : "derekmullin@gmail.com"
+	},
 	"contributors" : [
-		{	"name" : "echicken",
-			"email" : "echicken@electronicchicken.com"
+		{	"name" : "Derek Mullin",
+			"email" : "derekmullin@gmail.com"
 		}
 	],
-	"main" : "index.js",
+	"main" : "./index.js",
 	"repository" : {
 		"type" : "git",
 		"url" : "https://github.com/echicken/node-ax25.git"
