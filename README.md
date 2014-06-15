@@ -21,7 +21,7 @@ The node-ax25 module is made to interface with a KISS TNC over a serial port.  (
 
 ---
 
-####ax25.kissTNC
+####ax25.kissTNC####
 
 ```js
 var tnc = new ax25.kissTNC(
@@ -87,7 +87,7 @@ tnc.on(
 * **close()** - Close the connection to the TNC.
 * **exitKISS()** - Bring the TNC out of KISS mode (if your TNC has a terminal mode.)
 
-####ax25.Packet
+####ax25.Packet####
 
 ```js
 var packet = new ax25.Packet({ 'frame' : frame });
@@ -188,10 +188,10 @@ tnc.on(
 * **pollFinal** - True if this is a poll/final packet, false otherwise. (Boolean)
 * **command** - True if this is a command packet, false otherwise.  Inverse of *response*. (Boolean)
 * **response** - True if this is a response packet, false otherwise.  Inverse of *command*. (Boolean)
-* **type** - Bitfield for comparison against packet types as defined in ax25defs.js (eg. U_FRAME, I_FRAME, S_FRAME.)  (Number)
+* **type** - Bitfield for comparison against packet types as defined in Defs.js (eg. U_FRAME, I_FRAME, S_FRAME.)  (Number)
 * **nr** - Sender's receive-sequence number (N(R) in the AX.25 2.2 spec.) (Number)
 * **ns** - Sender's send-sequence number (N(S) in the AX.25 2.2 spec.) (Number)
-* **pid** - Protocol ID field, for comparison against PIDs defined in ax25defs.js. (Number)
+* **pid** - Protocol ID field, for comparison against PIDs defined in Defs.js. (Number)
 * **info** - The information field of an I or UI frame. (Array)
 * **infoString** - The information field of an I or UI frame, as a string. (String)
 
@@ -200,7 +200,7 @@ tnc.on(
 * **disassemble(frame)** - Where *frame* is an array of numbers representing an AX.25 frame (eg. the value provided by the ax25.kissTNC *frame* event,) disassemble *frame* and populate the above properties with the values found therein. (Note: if ax25.Packet is instantiated with a *frame* argument, this will happen automatically.) (Void)
 * **assemble()** - When creating an outgoing frame, make a new ax25.Packet object, populate its properties as desired, then call *ax25.Packet*.assemble(), which will return an array of numbers representing an AX.25 frame (which can be supplied to ax25.kissTNC.send(frame).) (Array)
 
-####ax25.Session
+####ax25.Session####
 
 #####Properties
 
