@@ -126,15 +126,23 @@ var Session = function(args) {
 			if(!Array.isArray(value))
 				self.emit("error", "ax25.Session.repeaterPath must be an array.");
 			for(var r = 0; r < value.length; r++) {
-				if(typeof value[r] != "string")
-					self.emit("error", "ax25.Session.repeaterPath: Invalid element: " + value[r]);
-				var rr = value[r].split("-");
-				if(rr.length != 2)
-					self.emit("error", "ax25.Session.repeaterPath: Invalid element: " + rr[0]);
-				var callsign = rr[0].toUpperCase();
-				var SSID = Number(rr[1]);
-				if(!ax25.Utils.testCallsign(callsign) || isNaN(SSID) || SSID < 0 || SSID > 15)
-					self.emit("error", "ax25.Session.repeaterPath: Invalid element: " + value[r]);
+				if(	typeof value[r] != "object"
+					||
+					typeof value[r].callsign != "string"
+					||
+					typeof value[r].ssid != "number"
+					||
+					!ax25.Utils.testCallsign(value[r].callsign)
+					||
+					value[r].ssid < 0
+					||
+					value[r].ssid > 15
+				) {
+					self.emit(
+						"error",
+						"ax25.Session.repeaterPath: elements must be { 'callsign', 'ssid' } objects."
+					);
+				}
 			}
 			properties.repeaterPath = value;
 		}
@@ -366,9 +374,18 @@ var Session = function(args) {
 	}
 
 	this.disconnect = function() {
+
 		clearTimer('connect');
 		clearTimer('t1');
 		clearTimer('t3');
+
+		if(state.connection != 2) {
+			self.emit("error", "ax25.Session.disconnect: Not connected.");
+			state.connection = 1;
+			clearTimer('disconnect');
+			return;
+		}
+
 		if(timer.disconnectAttempts == settings.retries) {
 			clearTimer('disconnect');
 			emitPacket(
