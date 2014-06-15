@@ -28,8 +28,8 @@ The node-ax25 module is made to interface with a KISS TNC over a serial port.  (
 - [ax25.Session](#ax25.Session)
 
 ---
-
-####ax25.kissTNC####
+<a name="ax25.kissTNC"></a>
+####ax25.kissTNC
 
 ```js
 var tnc = new ax25.kissTNC(
