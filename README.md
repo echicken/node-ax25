@@ -6,6 +6,12 @@ A KISS &amp; AX.25 packet radio stack for node.js.
 
 ###Installation
 
+```sh
+npm install ax25
+```
+
+Or:
+
 Assuming you have git installed, the following will clone this repository into a directory called 'node-ax25' under the current working directory, then attempt to install its dependencies:
 
 ```sh
