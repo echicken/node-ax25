@@ -209,7 +209,7 @@ var Session = function(args) {
 		if(timer.disconnectAttempts == settings.retries) {
 			clearTimer('disconnect');
 			emitPacket(
-				new ax25.packet(
+				new ax25.Packet(
 					{	'destinationCallsign'	: properties.remoteCallsign,
 						'destinationSSID'		: properties.remoteSSID,
 						'sourceCallsign'		: properties.localCallsign,
@@ -229,7 +229,7 @@ var Session = function(args) {
 		timer.disconnectAttempts++;
 		state.connection = DISCONNECTING;
 		emitPacket(
-			new ax25.packet(
+			new ax25.Packet(
 				{	'destinationCallsign'	: properties.remoteCallsign,
 					'destinationSSID'		: properties.remoteSSID,
 					'sourceCallsign'		: properties.localCallsign,
