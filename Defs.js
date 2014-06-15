@@ -24,6 +24,7 @@ var Defs = {
 	// 	Unnumbered frame and subtypes
 	U_FRAME			: 3,
 	U_FRAME_SABM	: 3|(1<<2)|(1<<3)|(1<<5),	// Set Asynchronous Balanced Mode
+	U_FRAME_SABME	: 3|(1<<3)|(1<<5)|(1<<6),	// SABM for modulo 128 operation
 	U_FRAME_DISC	: 3|(1<<6),					// Disconnect
 	U_FRAME_DM		: 3|(1<<2)|(1<<3),			// Disconnected Mode
 	U_FRAME_UA		: 3|(1<<5)|(1<<6),			// Acknowledge
