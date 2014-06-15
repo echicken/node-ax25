@@ -265,3 +265,10 @@ tnc.on(
 * **send(info)** - Send array of bytes (uint 8) 'info' to the remote station. (Void)  (Note: 'info' is just a plain old Array().  We may switch to Uint8Array or Buffer at some point.)
 * **sendString(str)** - Send string 'str' to the remote station. (Void)
 * **receive(packet)** - Process and respond to the received (and disassembled) packet 'packet'. (Void)
+
+---
+
+####To Do:
+
+- Support modulo 128 sequence numbers, SABME in Packet.js and Session.js
+- YAPP file transfers in Session or additional submodule
