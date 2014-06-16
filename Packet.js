@@ -463,12 +463,14 @@ var Packet = function(args) {
 			frame.push(properties.pid);
 		}
 
-		// Info field (I and UI frames only)
+		// Info field
 		if(	properties.info.length > 0
 			&&
 			(	properties.type == ax25.Defs.I_FRAME
 				||
 				properties.type == ax25.Defs.U_FRAME_UI
+				||
+				properties.type == ax25.Defs.U_FRAME_TEST
 			)
 		) {
 			for(var i = 0; i < properties.info.length; i++)

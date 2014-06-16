@@ -598,6 +598,17 @@ var Session = function(args) {
 					response.pollFinal = true;
 				}
 				break;
+
+			// Placeholder pending XID implementation
+			case ax25.Defs.U_FRAME_XID:
+				response.type = ax25.Defs.U_FRAME_DM;
+				break;
+
+			case ax25.Defs.U_FRAME_TEST:
+				response.type = ax25.Defs.U_FRAME_TEST:
+				if(packet.info.length > 0)
+					response.info = packet.info;
+				break;
 				
 			case ax25.Defs.S_FRAME_RR:
 				if(state.connection == CONNECTED) {
