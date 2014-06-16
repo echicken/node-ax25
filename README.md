@@ -277,7 +277,7 @@ If you're receiving AX.25 frames from something other than a KISS interface atta
 
 *ax25.Packet.disassemble(frame)* expects *frame* to be a plain array of unsigned 8-bit integers representing an AX.25 frame less the start/stop flags and Frame-Check Sequence (FCS.)  Either your interface or some middleware must remove the flags and verify the FCS, then format the data as described before passing it off to this method.
 
-*ax25.Packet.assemble()* returns an array of unsigned 8-bit integers representing an AX.25 frame without start/stop flags or an FCS.  Either your interface or some middleware must calculated and append the FCS to the frame, then prepend and append flags and convert the array as needed.
+*ax25.Packet.assemble()* returns an array of unsigned 8-bit integers representing an AX.25 frame without start/stop flags or an FCS.  Either your interface or some middleware must calculate and append the FCS to the frame, then prepend and append flags and convert the array as needed.
 
 ---
 ####To Do:
