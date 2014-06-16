@@ -359,6 +359,10 @@ var Packet = function(args) {
 			if(properties.type == ax25.Defs.U_FRAME_UI) {
 				properties.pid = frame.shift();
 				properties.info = frame;
+			} else if(properties.type == ax25.Defs.U_FRAME_XID && frame.length > 0) {
+				// Parse XID parameter fields and break out to properties
+			} else if(properties.type == ax25.Defs.U_FRAME_TEST && frame.length > 0) {
+				properties.info = frame;
 			}
 		} else if((control&ax25.Defs.U_FRAME) == ax25.Defs.S_FRAME) {
 			properties.type = control&ax25.Defs.S_FRAME_MASK;
