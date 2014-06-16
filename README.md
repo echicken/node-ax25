@@ -270,5 +270,18 @@ tnc.on(
 
 ####To Do:
 
-- Support modulo 128 sequence numbers, SABME in Packet.js and Session.js
+- Implement XID and TEST packet types in Packet.js and Session.js
+- Support modulo 128 sequence numbers
+	- ax25.Packet.disassemble(frame, modulo128)
+		- Where *modulo128* is boolean, expect a 16-bit control field on all S and I frames
+		- Flag packet as modulo 128 internally, allow N(R) & N(S) up to 127 if flagged
+		- Set reserved bit 6 of source SSID subfield on outgoing packets (could be used as above flag)
+	- ax25.Session.receive
+		- Add case for SABME
+	- ax25.Session
+		- Flag session as modulo 128 internally
+		- allow larger windowSize value
+		- adjust getTimeout() calculation
+		- adjust drain() and renumber() to handle larger sequence if session is flagged modulo 128
+		- implement resequencing, selective reject
 - YAPP file transfers in Session or additional submodule
