@@ -20,6 +20,7 @@ var Defs = {
 	S_FRAME_RR		: 1,				// Receive Ready
 	S_FRAME_RNR		: 1|(1<<2),			// Receive Not Ready
 	S_FRAME_REJ		: 1|(1<<3),			// Reject
+	S_FRAME_SREJ	: 1|(1<<2)|(1<<3),	// Selective Reject
 	S_FRAME_MASK	: 1|(1<<2)|(1<<3),
 	// 	Unnumbered frame and subtypes
 	U_FRAME			: 3,
