@@ -605,7 +605,7 @@ var Session = function(args) {
 				break;
 
 			case ax25.Defs.U_FRAME_TEST:
-				response.type = ax25.Defs.U_FRAME_TEST:
+				response.type = ax25.Defs.U_FRAME_TEST;
 				if(packet.info.length > 0)
 					response.info = packet.info;
 				break;
