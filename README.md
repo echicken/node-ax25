@@ -44,7 +44,10 @@ The node-ax25 module is made to interface with a KISS TNC over a serial port.  (
 		- [Events](#ax25.Session.Events)
 		- [Properties](#ax25.Session.Properties)
 		- [Methods](#ax25.Session.Methods)
-- [ax25.Notes](#ax25.Notes)
+
+---
+
+- [Notes](#ax25.Notes)
 	- Notes on using ax25.Packet and ax25.Session without ax25.kissTNC
 
 ---
