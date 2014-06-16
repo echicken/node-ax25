@@ -44,6 +44,8 @@ The node-ax25 module is made to interface with a KISS TNC over a serial port.  (
 		- [Events](#ax25.Session.Events)
 		- [Properties](#ax25.Session.Properties)
 		- [Methods](#ax25.Session.Methods)
+- [ax25.Notes](#ax25.Notes)
+	- Notes on using ax25.Packet and ax25.Session without ax25.kissTNC
 
 ---
 <a name="ax25.kissTNC"></a>
@@ -268,6 +270,16 @@ tnc.on(
 
 ---
 
+<a name="ax25.Notes"></a>
+#####Notes on the usage of ax25.Packet and ax25.Session without using ax25.kissTNC
+
+If you're receiving AX.25 frames from something other than a KISS interface attached to a serial port, you can still use ax25.Packet for packet assembly/disassembly, and you can also use ax25.Session to maintain stateful connections.
+
+*ax25.Packet.disassemble(frame)* expects *frame* to be a plain array of unsigned 8-bit integers representing an AX.25 frame less the start/stop flags and Frame-Check Sequence (FCS.)  Either your interface or some middleware must remove the flags and verify the FCS, then format the data as described before passing it off to this method.
+
+*ax25.Packet.assemble()* returns an array of unsigned 8-bit integers representing an AX.25 frame without start/stop flags or an FCS.  Either your interface or some middleware must calculated and append the FCS to the frame, then prepend and append flags and convert the array as needed.
+
+---
 ####To Do:
 
 - Implement XID and TEST packet types in Packet.js and Session.js
