@@ -282,7 +282,7 @@ If you're receiving AX.25 frames from something other than a KISS interface atta
 ---
 ####To Do:
 
-- Implement XID and TEST packet types in Packet.js and Session.js
+- Implement XID in Packet.js and Session.js (placeholders currently exist)
 - Support modulo 128 sequence numbers
 	- ax25.Packet.disassemble(frame, modulo128)
 		- Where *modulo128* is boolean and true, expect a 16-bit control field on all S and I frames
@@ -297,3 +297,4 @@ If you're receiving AX.25 frames from something other than a KISS interface atta
 		- adjust drain() and renumber() to handle larger sequence if session is flagged modulo 128
 		- implement resequencing, selective reject
 - YAPP file transfers in Session or additional submodule
+	- Or some other file transfer mechanism if something better came along and has seen some uptake
