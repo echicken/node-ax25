@@ -31,8 +31,8 @@ var Defs = {
 	U_FRAME_UA		: 3|(1<<5)|(1<<6),					// Acknowledge
 	U_FRAME_FRMR	: 3|(1<<2)|(1<<7),					// Frame Reject
 	U_FRAME_UI		: 3,								// Information
-	U_FRAME_XID		: 3,(1<<2)|(1<<3)|(1<<5)|(1<<7),	// Exchange Identification
-	U_FRAME_TEST	: 3,(1<<5)|(1<<6)|(1<<7),			// Test
+	U_FRAME_XID		: 3|(1<<2)|(1<<3)|(1<<5)|(1<<7),	// Exchange Identification
+	U_FRAME_TEST	: 3|(1<<5)|(1<<6)|(1<<7),			// Test
 	U_FRAME_MASK	: 3|(1<<2)|(1<<3)|(1<<5)|(1<<6)|(1<<7),
 
 	// Protocol ID field bitmasks (most are unlikely to be used, but are here for the sake of completeness.)
