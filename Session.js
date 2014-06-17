@@ -14,10 +14,11 @@ var Session = function(args) {
 	events.EventEmitter.call(this);
 
 	var settings = {
-		'windowSize' : 7,
+		'maxFrames' : 4,
 		'packetLength' : 256,
 		'retries' : 5,
-		'hBaud' : 1200
+		'hBaud' : 1200,
+		'allowModulo128' : false
 	};
 
 	var properties = {
@@ -25,7 +26,8 @@ var Session = function(args) {
 		'remoteSSID' : 0,
 		'localCallsign' : "",
 		'localSSID' : 0,
-		'repeaterPath' : []
+		'repeaterPath' : [],
+		'modulo128' : false
 	};
 
 	var state = {
@@ -157,18 +159,18 @@ var Session = function(args) {
 	);
 
 	this.__defineGetter__(
-		"windowSize",
+		"maxFrames",
 		function() {
-			return settings.windowSize;
+			return settings.maxFrames;
 		}
 	);
 
 	this.__defineSetter__(
-		"windowSize",
+		"maxFrames",
 		function(value) {
 			if(typeof value != "number" || value < 1 || value > 7)
-				self.emit("error", "ax25.Session.windowSize must be a number from 1 through 7.");
-			settings.windowSize = value;
+				self.emit("error", "ax25.Session.maxFrames must be a number from 1 through 7.");
+			settings.maxFrames = value;
 		}
 	);
 
@@ -217,6 +219,22 @@ var Session = function(args) {
 			if(typeof value != "number" || value < 1)
 				self.emit("error", "ax25.Session.hBaud must be a number >= 1.");
 			settings.hBaud = value;
+		}
+	);
+
+	this.__defineGetter__(
+		"allowModulo128",
+		function() {
+			return settings.modulo128;
+		}
+	);
+
+	this.__defineSetter__(
+		"allowModulo128",
+		function(value) {
+			if(typeof value != "boolean")
+				self.emit("error", "ax25.Session.modulo128 must be boolean.");
+			settings.modulo128 = value;
 		}
 	);
 
@@ -308,10 +326,10 @@ var Session = function(args) {
 				ax25.Utils.distanceBetween(
 					state.sendSequence,
 					state.remoteReceiveSequence,
-					8
-				) < 7
+					(properties.modulo128) ? 128 : 8,
+				) < (properties.modulo128) ? 127 : 7
 				&&
-				packet < settings.windowSize
+				packet < settings.maxFrames
 			) {
 				state.sendBuffer[packet].ns = state.sendSequence;
 				state.sendBuffer[packet].nr = state.receiveSequence;

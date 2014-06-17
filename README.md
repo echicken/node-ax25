@@ -303,8 +303,8 @@ tnc.on(
 	- The local station's SSID, one number, 0 - 15. (Number)
 - **repeaterPath**
 	- An array of { callsign : <string>, ssid : <number> } objects. (Array of objects)
-- **windowSize**
-	- Maximum number of unacknowledged I frames out at any given time, 1 - 7. Default: 7. (Number)
+- **maxFrames**
+	- Maximum number of unacknowledged I frames out at any given time, 1 - 7. Default: 4. (Number)
 - **packetLength**
 	- Maximum packet payload size, in bytes, minimum of 1. Default: 256.  Smaller values such as 64 are best for crappy links.  The spec says 256 is the maximum, so don't expect most TNCs to support larger values. (Number)
 - **retries**
@@ -346,7 +346,7 @@ If you're receiving AX.25 frames from something other than a KISS interface atta
 	- ax25.Session
 		- Add case for SABME in .receive()
 		- Flag session as modulo 128 internally
-		- allow larger windowSize value
+		- allow larger maxFrames value
 		- adjust getTimeout() calculation
 		- adjust drain() and renumber() to handle larger sequence if session is flagged modulo 128
 		- implement resequencing, selective reject
