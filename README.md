@@ -104,9 +104,8 @@ tnc.on(
 	- The connection to the TNC has been opened successfully.
 - **closed**
 	- The connection to the TNC has been closed.
-
 - **error**
- 	- An error has occurred (error details will be supplied as an argument to your callback function.)
+	- An error has occurred (error details will be supplied as an argument to your callback function.)
 - **frame**
 	- A KISS frame has been received from the TNC (the enclosed AX.25 frame, less start/stop flags and FCS, will be supplied as an argument to your callback function.)
 - **sent**
