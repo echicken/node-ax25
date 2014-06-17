@@ -100,30 +100,47 @@ tnc.on(
 <a name="ax25.kissTNC.Events"></a>
 #####Events:
 
-* **opened** - The connection to the TNC has been opened successfully.
-* **closed** - The connection to the TNC has been closed.
-* **error** - An error has occurred (error details will be supplied as an argument to your callback function.)
-* **frame** - A KISS frame has been received from the TNC (the enclosed AX.25 frame, less start/stop flags and FCS, will be supplied as an argument to your callback function.)
-* **sent** - A KISS frame was sent to the TNC (the number of bytes sent to the TNC will be supplied as an argument to your callback function.  Not very useful.)
+- **opened**
+	- The connection to the TNC has been opened successfully.
+- **closed**
+	- The connection to the TNC has been closed.
+
+- **error**
+ 	- An error has occurred (error details will be supplied as an argument to your callback function.)
+- **frame**
+	- A KISS frame has been received from the TNC (the enclosed AX.25 frame, less start/stop flags and FCS, will be supplied as an argument to your callback function.)
+- **sent**
+	- A KISS frame was sent to the TNC (the number of bytes sent to the TNC will be supplied as an argument to your callback function.  Not very useful.)
 
 <a name="ax25.kissTNC.Properties"></a>
 #####Properties:
 
-* **serialPort** - eg. "COM1", or "/dev/ttyUSB0". (String)
-* **baudRate** - eg. 1200, 9600, 115200. (Number)
-* **txDelay** - Transmitter keyup delay, in milliseconds. Default: 500. (Number)
-* **persistence** - Persistence, float between 0 and 1. Default: 0.25. (Number)
-* **slotTime** - Slot interval, in milliseconds. Default : 100. (Number)
-* **txTail** - Time to keep transmitting after packet is sent, in milliseconds (deprecated.) (Number)
-* **fullDuplex** - Boolean, default: false. (Boolean)
+- **serialPort**
+	- eg. "COM1", or "/dev/ttyUSB0". (String)
+- **baudRate**
+	- eg. 1200, 9600, 115200. (Number)
+- **txDelay**
+	- Transmitter keyup delay, in milliseconds. Default: 500. (Number)
+- **persistence**
+	- Persistence, float between 0 and 1. Default: 0.25. (Number)
+- **slotTime**
+	- Slot interval, in milliseconds. Default : 100. (Number)
+- **txTail**
+	- Time to keep transmitting after packet is sent, in milliseconds (deprecated.) (Number)
+- **fullDuplex**
+	- Boolean, default: false. (Boolean)
 
 <a name="ax25.kissTNC.Methods"></a>
 #####Methods:
 
-* **send(frame)** - Sends an AX.25 frame to the TNC to be sent out over the air.  (*frame* must be an array of bytes, representing an AX.25 frame less the flags and FCS, eg. the return value of *ax25.Packet.assemble()*.)
-* **setHardware(value)** - Most people won't need to use this ... consult your TNC's documentation.
-* **close()** - Close the connection to the TNC.
-* **exitKISS()** - Bring the TNC out of KISS mode (if your TNC has a terminal mode.)
+- **send(frame)**
+	- Sends an AX.25 frame to the TNC to be sent out over the air.  (*frame* must be an array of bytes, representing an AX.25 frame less the flags and FCS, eg. the return value of *ax25.Packet.assemble()*.)
+- **setHardware(value)**
+	- Most people won't need to use this ... consult your TNC's documentation.
+- **close()**
+	- Close the connection to the TNC.
+- **exitKISS()**
+	- Bring the TNC out of KISS mode (if your TNC has a terminal mode.)
 
 <a name="ax25.Packet"></a>
 ####ax25.Packet
@@ -220,27 +237,44 @@ tnc.on(
 <a name="ax25.Packet.Properties"></a>
 #####Properties
 
-* **destinationCallsign** - The destination callsign, up to six alphanumerics. (String)
-* **destinationSSID** - The destination SSID, one number, 0 - 15. (Number)
-* **sourceCallsign** - The source callsign, up to six alphanumerics. (String)
-* **sourceSSID** - The source SSID, one number. (Number)
-* **repeaterPath** - An array of { callsign : <string>, ssid : <number> } objects. (Array of objects)
-* **pollFinal** - True if this is a poll/final packet, false otherwise. (Boolean)
-* **command** - True if this is a command packet, false otherwise.  Inverse of *response*. (Boolean)
-* **response** - True if this is a response packet, false otherwise.  Inverse of *command*. (Boolean)
-* **type** - Bitfield for comparison against packet types as defined in Defs.js (eg. U_FRAME, I_FRAME, S_FRAME.)  (Number)
-* **nr** - Sender's receive-sequence number (N(R) in the AX.25 2.2 spec.) (Number)
-* **ns** - Sender's send-sequence number (N(S) in the AX.25 2.2 spec.) (Number)
-* **pid** - Protocol ID field, for comparison against PIDs defined in Defs.js. (Number)
-* **info** - The information field of an I or UI frame. (Array)
-* **infoString** - The information field of an I or UI frame, as a string. (String)
+- **destinationCallsign**
+	- The destination callsign, up to six alphanumerics. (String)
+- **destinationSSID**
+	- The destination SSID, one number, 0 - 15. (Number)
+- **sourceCallsign**
+	- The source callsign, up to six alphanumerics. (String)
+- **sourceSSID**
+	- The source SSID, one number. (Number)
+- **repeaterPath**
+	- An array of { callsign : <string>, ssid : <number> } objects. (Array of objects)
+- **pollFinal**
+	- True if this is a poll/final packet, false otherwise. (Boolean)
+- **command**
+	- True if this is a command packet, false otherwise.  Inverse of *response*. (Boolean)
+- **response**
+	- True if this is a response packet, false otherwise.  Inverse of *command*. (Boolean)
+- **type**
+	- Bitfield for comparison against packet types as defined in Defs.js (eg. U_FRAME, I_FRAME, S_FRAME.)  (Number)
+- **nr**
+	- Sender's receive-sequence number (N(R) in the AX.25 2.2 spec.) (Number)
+- **ns**
+	- Sender's send-sequence number (N(S) in the AX.25 2.2 spec.) (Number)
+- **pid**
+	- Protocol ID field, for comparison against PIDs defined in Defs.js. (Number)
+- **info**
+	- The information field of an I or UI frame. (Array)
+- **infoString**
+	- The information field of an I or UI frame, as a string. (String)
 
 <a name="ax25.Packet.Methods"></a>
 #####Methods
 
-* **disassemble(frame)** - Where *frame* is an array of numbers representing an AX.25 frame (eg. the value provided by the ax25.kissTNC *frame* event,) disassemble *frame* and populate the above properties with the values found therein. (Note: if ax25.Packet is instantiated with a *frame* argument, this will happen automatically.) (Void)
-* **assemble()** - When creating an outgoing frame, make a new ax25.Packet object, populate its properties as desired, then call *ax25.Packet*.assemble(), which will return an array of numbers representing an AX.25 frame (which can be supplied to ax25.kissTNC.send(frame).) (Array)
-* **log()** - Returns a line of text describing some of the packet's properties, suitable for logging purposes. (String)
+- **disassemble(frame)**
+	- Where *frame* is an array of numbers representing an AX.25 frame (eg. the value provided by the ax25.kissTNC *frame* event,) disassemble *frame* and populate the above properties with the values found therein. (Note: if ax25.Packet is instantiated with a *frame* argument, this will happen automatically.) (Void)
+- **assemble()**
+	- When creating an outgoing frame, make a new ax25.Packet object, populate its properties as desired, then call *ax25.Packet*.assemble(), which will return an array of numbers representing an AX.25 frame (which can be supplied to ax25.kissTNC.send(frame).) (Array)
+- **log()**
+	- Returns a line of text describing some of the packet's properties, suitable for logging purposes. (String)
 
 <a name="ax25.Session"></a>
 ####ax25.Session
@@ -248,32 +282,50 @@ tnc.on(
 <a name="ax25.Session.Events"></a>
 #####Events
 
-* **packet** - An outgoing packet is ready for transmission.  Your callback will be provided with an ax25.Packet object which can be sent with *ax25.kissTNC*.send(*packet*.assemble());
-* **data** - Data (I or UI frame payload) has been received from the remote station.  Your callback will be provided with an array of uint 8 bytes. (ax25.Utils.byteArrayToString(arr) can turn this into a string for your convenience.)
-* **connection** - The connection state has changed.  Your callback will be provided with a boolean value.  *True* means that a connection has been established.  *False* means that the connection has been closed.  (Note that the connection may occasionally be re-established without a disconnection happening as part of a reset procedure.)
-* **error** - Something done borked.  Your callback will be provided with a helpful textual error message.
+- **packet**
+	- An outgoing packet is ready for transmission.  Your callback will be provided with an ax25.Packet object which can be sent with *ax25.kissTNC*.send(*packet*.assemble());
+- **data**
+	- Data (I or UI frame payload) has been received from the remote station.  Your callback will be provided with an array of uint 8 bytes. (ax25.Utils.byteArrayToString(arr) can turn this into a string for your convenience.)
+- **connection**
+	- The connection state has changed.  Your callback will be provided with a boolean value.  *True* means that a connection has been established.  *False* means that the connection has been closed.  (Note that the connection may occasionally be re-established without a disconnection happening as part of a reset procedure.)
+- **error**
+	- Something done borked.  Your callback will be provided with a helpful textual error message.
 
 <a name="ax25.Session.Properties"></a>
 #####Properties
 
-* **remoteCallsign** - The remote station's callsign, up to six alphanumerics. (String)
-* **remoteSSID** - The remote station's SSID, one number, 0 - 15. (Number)
-* **sourceCallsign** - The local station's (your) callsign, up to six alphanumerics. (String)
-* **sourceSSID** - The local station's SSID, one number, 0 - 15. (Number)
-* **repeaterPath** - An array of { callsign : <string>, ssid : <number> } objects. (Array of objects)
-* **windowSize** - Maximum number of unacknowledged I frames out at any given time, 1 - 7. Default: 7. (Number)
-* **packetLength** - Maximum packet payload size, in bytes, minimum of 1. Default: 256.  Smaller values such as 64 are best for crappy links.  The spec says 256 is the maximum, so don't expect most TNCs to support larger values. (Number)
-* **retries** - How many times to poll the other station for a response before giving up.  Default: 5.  You may wish to raise this value if using a very busy frequency, etc. (Number)
-* **hBaud** - The baud rate of over-the-air communications.  Default: 1200.  It's recommended that you set this if your value differs from the default, as polling intervals and other timeouts are calculated based on this figure, among others. (Number)
+- **remoteCallsign**
+	- The remote station's callsign, up to six alphanumerics. (String)
+- **remoteSSID**
+	- The remote station's SSID, one number, 0 - 15. (Number)
+- **sourceCallsign**
+	- The local station's (your) callsign, up to six alphanumerics. (String)
+- **sourceSSID**
+	- The local station's SSID, one number, 0 - 15. (Number)
+- **repeaterPath**
+	- An array of { callsign : <string>, ssid : <number> } objects. (Array of objects)
+- **windowSize**
+	- Maximum number of unacknowledged I frames out at any given time, 1 - 7. Default: 7. (Number)
+- **packetLength**
+	- Maximum packet payload size, in bytes, minimum of 1. Default: 256.  Smaller values such as 64 are best for crappy links.  The spec says 256 is the maximum, so don't expect most TNCs to support larger values. (Number)
+- **retries**
+	- How many times to poll the other station for a response before giving up.  Default: 5.  You may wish to raise this value if using a very busy frequency, etc. (Number)
+- **hBaud**
+	- The baud rate of over-the-air communications.  Default: 1200.  It's recommended that you set this if your value differs from the default, as polling intervals and other timeouts are calculated based on this figure, among others. (Number)
 
 <a name="ax25.Session.Methods"></a>
 #####Methods
 
-* **connect()** - Opens a connection to another station.  Remote and Local callsign and SSID properties must be set first. (Void)
-* **disconnect()** - Disconnect from the remote station. (Void)
-* **send(info)** - Send array of bytes (uint 8) 'info' to the remote station. (Void)  (Note: 'info' is just a plain old Array().  We may switch to Uint8Array or Buffer at some point.)
-* **sendString(str)** - Send string 'str' to the remote station. (Void)
-* **receive(packet)** - Process and respond to the received (and disassembled) packet 'packet'. (Void)
+- **connect()**
+	- Opens a connection to another station.  Remote and Local callsign and SSID properties must be set first. (Void)
+- **disconnect()**
+	- Disconnect from the remote station. (Void)
+- **send(info)**
+	- Send array of bytes (uint 8) 'info' to the remote station. (Void)  (Note: 'info' is just a plain old Array().  We may switch to Uint8Array or Buffer at some point.)
+- **sendString(str)**
+	- Send string 'str' to the remote station. (Void)
+- **receive(packet)**
+	- Process and respond to the received (and disassembled) packet 'packet'. (Void)
 
 ---
 
