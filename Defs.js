@@ -9,9 +9,12 @@ var Defs = {
 	A_SSID	: (1<<1)|(1<<2)|(1<<3)|(1<<4),	// The SSID portion of an SSID octet
 
 	// Control field bitmasks
-	PF : (1<<4),				// Poll/Final
-	NR : (1<<5)|(1<<6)|(1<<7),	// N(R) - receive sequence number
-	NS : (1<<1)|(1<<2)|(1<<3),	// N(S) - send sequence number
+	PF 				: (1<<4),				// Poll/Final
+	NS 				: (1<<1)|(1<<2)|(1<<3),	// N(S) - send sequence number
+	NR 				: (1<<5)|(1<<6)|(1<<7),	// N(R) - receive sequence number
+	PF_MODULO128	: (1<<8), 				// Poll/Final in modulo 128 mode I & S frames
+	NS_MODULO128	: (127<<1),				// N(S) in modulo 128 I frames
+	NR_MODULO128	: (127<<9),				// N(R) in modulo 128 I & S frames
 	// 	Information frame
 	I_FRAME			: 0,
 	I_FRAME_MASK	: 1,
