@@ -16,7 +16,8 @@ var Packet = function(args) {
 		'ns'					: 0,
 		'pid'					: ax25.Defs.PID_NONE,
 		'info'					: [],
-		'sent'					: false // Relevant only to ax25.Session
+		'sent'					: false, // Relevant only to ax25.Session
+		'modulo128'				: false
 	};
 	
 	this.__defineGetter__(
@@ -316,6 +317,22 @@ var Packet = function(args) {
 			properties.sent = sent;
 		}
 	);
+
+	this.__defineGetter__(
+		"modulo128",
+		function() {
+			return properties.modulo128;
+		}
+	);
+
+	this.__defineSetter__(
+		"modulo128",
+		function(modulo128) {
+			if(typeof modulo128 != "boolean")
+				throw "ax25.Packet.modulo128: Value must be boolean.";
+			properties.modulo128 = modulo128;
+		}
+	);
 	
 	this.disassemble = function(frame) {
 
@@ -353,8 +370,8 @@ var Packet = function(args) {
 		
 		// Control field
 		var control = frame.shift();
-		properties.pollFinal = (control&ax25.Defs.PF)>>4;
 		if((control&ax25.Defs.U_FRAME) == ax25.Defs.U_FRAME) {
+			properties.pollFinal = (control&ax25.Defs.PF)>>4;
 			properties.type = control&ax25.Defs.U_FRAME_MASK;
 			if(properties.type == ax25.Defs.U_FRAME_UI) {
 				properties.pid = frame.shift();
@@ -366,11 +383,22 @@ var Packet = function(args) {
 			}
 		} else if((control&ax25.Defs.U_FRAME) == ax25.Defs.S_FRAME) {
 			properties.type = control&ax25.Defs.S_FRAME_MASK;
-			properties.nr = (control&ax25.Defs.NR)>>5;
+			if(properties.modulo128) {
+				control|=(frame.shift()<<8);
+				properties.nr = (control&ax25.Defs.NR_MODULO128)>>8;
+			} else {
+				properties.nr = (control&ax25.Defs.NR)>>5;
+			}
 		} else if((control&1) == ax25.Defs.I_FRAME) {
 			properties.type = ax25.Defs.I_FRAME;
-			properties.nr = (control&ax25.Defs.NR)>>5;
-			properties.ns = (control&ax25.Defs.NS)>>1;
+			if(properties.modulo128) {
+				control|=(frame.shift()<<8);
+				properties.nr = (control&ax25.Defs.NR_MODULO128)>>8;
+				properties.ns = (control&ax25.Defs.NS_MODULO128)>>1;
+			} else {
+				properties.nr = (control&ax25.Defs.NR)>>5;
+				properties.ns = (control&ax25.Defs.NS)>>1;
+			}
 			properties.pid = frame.shift();
 			properties.info = frame;
 		} else {
@@ -489,13 +517,13 @@ var Packet = function(args) {
 				pid = def.replace(/^PID_/, "");
 		}
 		return util.format(
-			"%s-%s -> %s-%s %s, C: %s, R: %s, PF: %s, Type: %s, PID: %s, %s",
+			"%s-%s -> %s-%s %s, C: %s, R: %s, PF: %s, Type: %s, PID: %s %s",
 			this.sourceCallsign, this.sourceSSID,
 			this.destinationCallsign, this.destinationSSID,
 			(this.repeaterPath.length > 0) ? "(" + this.repeaterPath.join("->") + ")" : "",
 			this.command, this.response, this.pollFinal, type, pid,
-			(type == "I_FRAME" || type.match(/^S_FRAME.*/) !== null)
-				? "N(R): " + this.nr + ", N(S): " + this.ns : ""
+			(type == "I_FRAME" || type.match(/^S_FRAME.*/) !== null) ? ", N(R): " + this.nr : "",
+			(type == "I_FRAME")  ? ", N(S): " + this.ns : ""
 		);
 	}
 
