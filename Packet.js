@@ -186,12 +186,12 @@ var Packet = function(args) {
 				||
 				(properties.type&ax25.Defs.U_FRAME) == ax25.Defs.S_FRAME
 			) {
-				control|=(properties.nr<<5);
+				control|=(properties.nr<<((properties.modulo128) ? 9 : 5));
 			}
 			if(properties.type == ax25.Defs.I_FRAME)
 				control|=(properties.ns<<1);
 			if(this.pollFinal)
-				control|=(properties.pollFinal<<4);
+				control|=(properties.pollFinal<<((properties.modulo128) ? 8 : 4));
 			return control;
 		}
 	);
@@ -222,7 +222,7 @@ var Packet = function(args) {
 	this.__defineSetter__(
 		"nr",
 		function(nr) {
-			if(typeof nr != "number" || nr < 0 || nr > 7)
+			if(typeof nr != "number" || nr < 0 || nr > ((properties.modulo128) ? 127 : 7))
 				throw "ax25.Packet: Invalid N(R) assignment.";
 			properties.nr = nr;
 		}
@@ -238,7 +238,7 @@ var Packet = function(args) {
 	this.__defineSetter__(
 		"ns",
 		function(ns) {
-			if(typeof ns != "number" || ns < 0 || ns > 7)
+			if(typeof ns != "number" || ns < 0 || ns > ((properties.modulo128) ? 127 : 7))
 				throw "ax25.Packet: Invalid N(S) assignment.";
 			properties.ns = ns;
 		}
@@ -478,7 +478,12 @@ var Packet = function(args) {
 		}
 
 		// Control field
-		frame.push(this.control);
+		if(!properties.modulo128) {
+			frame.push(this.control);
+		} else {
+			frame.push(this.control&255);
+			frame.push(this.control>>8);
+		}
 
 		// PID field (I and UI frames only)
 		if(	properties.pid
