@@ -278,13 +278,15 @@ tnc.on(
 ---
 
 <a name="ax25.Notes"></a>
-#####Notes on the usage of ax25.Packet and ax25.Session without using ax25.kissTNC
+#####Notes on using ax25.Packet and ax25.Session without ax25.kissTNC
 
 If you're receiving AX.25 frames from something other than a KISS interface attached to a serial port, you can still use ax25.Packet for packet assembly/disassembly, and you can also use ax25.Session to maintain stateful connections.
 
 *ax25.Packet.disassemble(frame)* expects *frame* to be a plain array of unsigned 8-bit integers representing an AX.25 frame less the start/stop flags and Frame-Check Sequence (FCS.)  Either your interface or some middleware must remove the flags and verify the FCS, then format the data as described before passing it off to this method.
 
 *ax25.Packet.assemble()* returns an array of unsigned 8-bit integers representing an AX.25 frame without start/stop flags or an FCS.  Either your interface or some middleware must calculate and append the FCS to the frame, then prepend and append flags and convert the array as needed.
+
+*I know that these arrays of uint8s are kinda dumb.  I didn't really know about Buffer or Uint8Array when I started this thing, and I'm too lazy to make those changes right now.*
 
 ---
 ####To Do:
