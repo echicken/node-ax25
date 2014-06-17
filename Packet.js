@@ -437,7 +437,8 @@ var Packet = function(args) {
 				)<<1
 			);
 		}
-		frame.push((properties.command<<7)|(properties.destinationSSID<<1));
+		frame.push((properties.command<<7)|(3<<5)|(properties.destinationSSID<<1)
+		);
 
 		// Address field: Source subfield
 		for(var c = 0; c < 6; c++) {
@@ -452,6 +453,10 @@ var Packet = function(args) {
 		}
 		frame.push(
 			((properties.command^1)<<7)
+			|
+			(((properties.modulo128) ? 0 : 1)<<6)
+			|
+			(1<<5)
 			|
 			(properties.sourceSSID<<1)
 			|
