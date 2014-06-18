@@ -531,12 +531,12 @@ var Packet = function(args) {
 				pid = def.replace(/^PID_/, "");
 		}
 		return util.format(
-			"%s-%s -> %s-%s %s, C: %s, R: %s, PF: %s, Type: %s, PID: %s %s",
+			"%s-%s -> %s-%s%s, C: %s, R: %s, PF: %s, Type: %s, PID: %s, %s%s",
 			this.sourceCallsign, this.sourceSSID,
 			this.destinationCallsign, this.destinationSSID,
-			(this.repeaterPath.length > 0) ? "(" + this.repeaterPath.join("->") + ")" : "",
+			(this.repeaterPath.length > 0) ? " (" + this.repeaterPath.join("->") + ")" : "",
 			this.command, this.response, this.pollFinal, type, pid,
-			(type == "I_FRAME" || type.match(/^S_FRAME.*/) !== null) ? ", N(R): " + this.nr : "",
+			(type == "I_FRAME" || type.match(/^S_FRAME.*/) !== null) ? "N(R): " + this.nr : "",
 			(type == "I_FRAME")  ? ", N(S): " + this.ns : ""
 		);
 	}
