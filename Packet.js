@@ -386,8 +386,10 @@ var Packet = function(args) {
 			if(properties.modulo128) {
 				control|=(frame.shift()<<8);
 				properties.nr = (control&ax25.Defs.NR_MODULO128)>>8;
+				properties.pollFinal = (control&ax25.Defs.PF)>>7;
 			} else {
 				properties.nr = (control&ax25.Defs.NR)>>5;
+				properties.pollFinal = (control&ax25.Defs.PF)>>4;
 			}
 		} else if((control&1) == ax25.Defs.I_FRAME) {
 			properties.type = ax25.Defs.I_FRAME;
@@ -395,9 +397,11 @@ var Packet = function(args) {
 				control|=(frame.shift()<<8);
 				properties.nr = (control&ax25.Defs.NR_MODULO128)>>8;
 				properties.ns = (control&ax25.Defs.NS_MODULO128)>>1;
+				properties.pollFinal = (control&ax25.Defs.PF)>>7;
 			} else {
 				properties.nr = (control&ax25.Defs.NR)>>5;
 				properties.ns = (control&ax25.Defs.NS)>>1;
+				properties.pollFinal = (control&ax25.Defs.PF)>>4;
 			}
 			properties.pid = frame.shift();
 			properties.info = frame;
