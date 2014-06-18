@@ -18,7 +18,7 @@ var Session = function(args) {
 		'packetLength' : 256,
 		'retries' : 5,
 		'hBaud' : 1200,
-		'allowModulo128' : false
+		'modulo128' : false
 	};
 
 	var properties = {
@@ -26,8 +26,7 @@ var Session = function(args) {
 		'remoteSSID' : 0,
 		'localCallsign' : "",
 		'localSSID' : 0,
-		'repeaterPath' : [],
-		'modulo128' : false
+		'repeaterPath' : []
 	};
 
 	var state = {
@@ -168,8 +167,13 @@ var Session = function(args) {
 	this.__defineSetter__(
 		"maxFrames",
 		function(value) {
-			if(typeof value != "number" || value < 1 || value > 7)
-				self.emit("error", "ax25.Session.maxFrames must be a number from 1 through 7.");
+			if(typeof value != "number" || value < 1 || value > ((settings.modulo128) ? 127 : 7)) {
+				self.emit(
+					"error",
+					"ax25.Session.maxFrames must be a number from 1 through "
+					+ (settings.modulo128) ? 127 : 7 + "."
+				);
+			}
 			settings.maxFrames = value;
 		}
 	);
@@ -223,14 +227,14 @@ var Session = function(args) {
 	);
 
 	this.__defineGetter__(
-		"allowModulo128",
+		"modulo128",
 		function() {
 			return settings.modulo128;
 		}
 	);
 
 	this.__defineSetter__(
-		"allowModulo128",
+		"modulo128",
 		function(value) {
 			if(typeof value != "boolean")
 				self.emit("error", "ax25.Session.modulo128 must be boolean.");
@@ -242,7 +246,7 @@ var Session = function(args) {
 		return Math.floor(
 			(	(((600 + (settings.packetLength * 8)) / settings.hBaud) * 2)
 				* 1000
-			) * (properties.repeaterPath.length > 0) ? properties.repeaterPath.length : 1
+			) * ((properties.repeaterPath.length > 0) ? properties.repeaterPath.length : 1)
 		);
 	}
 
@@ -326,8 +330,8 @@ var Session = function(args) {
 				ax25.Utils.distanceBetween(
 					state.sendSequence,
 					state.remoteReceiveSequence,
-					(properties.modulo128) ? 128 : 8,
-				) < (properties.modulo128) ? 127 : 7
+					(settings.modulo128) ? 128 : 8
+				) < ((settings.modulo128) ? 127 : 7)
 				&&
 				packet < settings.maxFrames
 			) {
@@ -335,7 +339,7 @@ var Session = function(args) {
 				state.sendBuffer[packet].nr = state.receiveSequence;
 				emitPacket(state.sendBuffer[packet]);
 				state.sendBuffer[packet].sent = true;
-				state.sendSequence = (state.sendSequence + 1) % 8;
+				state.sendSequence = (state.sendSequence + 1) % ((settings.modulo128) ? 128 : 8);
 				ret = true;
 			}
 		}
@@ -346,7 +350,7 @@ var Session = function(args) {
 
 	var renumber = function() {
 		for(var p = 0; p < state.sendBuffer.length; p++) {
-			state.sendBuffer[p].ns = p % 8;
+			state.sendBuffer[p].ns = p % ((settings.modulo128) ? 128 : 8);
 			state.sendBuffer[p].nr = 0;
 			state.sendBuffer[p].sent = false;
 		}
@@ -388,7 +392,8 @@ var Session = function(args) {
 					'ns'					: state.sendSequence,
 					'pollFinal'				: true,
 					'command' 				: true,
-					'type'					: ax25.Defs.U_FRAME_SABM	
+					'type'					: 
+						(settings.modulo128) ? ax25.Defs.U_FRAME_SABME : ax25.Defs.U_FRAME_SABM
 				}
 			)
 		);
@@ -529,6 +534,26 @@ var Session = function(args) {
 				clearTimer("disconnect");
 				clearTimer("t1");
 				clearTimer("t3");
+				settings.modulo128 = false;
+				renumber();
+				emit = ["connection", true];
+				response.type = ax25.Defs.U_FRAME_UA;
+				if(packet.command && packet.pollFinal)
+					response.pollFinal = true;
+				doDrain = true;
+				break;
+
+			case ax25.Defs.U_FRAME_SABME:
+				state.connection = CONNECTED;
+				state.receiveSequence = 0;
+				state.sendSequence = 0;
+				state.remoteReceiveSequence = 0;
+				state.remoteBusy = false;
+				clearTimer("connect");
+				clearTimer("disconnect");
+				clearTimer("t1");
+				clearTimer("t3");
+				settings.modulo128 = true;
 				renumber();
 				emit = ["connection", true];
 				response.type = ax25.Defs.U_FRAME_UA;
@@ -600,6 +625,10 @@ var Session = function(args) {
 					clearTimer("t1");
 					clearTimer("t3");
 					response = false;
+					if(state.connection == CONNECTING) {
+						settings.modulo128 = false;
+						this.connect();
+					}
 					emit = ["connection", false];
 				} else {
 					response.type = ax25.Defs.U_FRAME_DM;
@@ -608,7 +637,11 @@ var Session = function(args) {
 				break;
 				
 			case ax25.Defs.U_FRAME_FRMR:
-				if(state.connection == CONNECTED) {
+				if(state.connection == CONNECTING && settings.modulo128) {
+					settings.modulo128 = false;
+					this.connect();
+					response = false;
+				} else if(state.connection == CONNECTED) {
 					this.connect();
 					response = false;
 				} else {
