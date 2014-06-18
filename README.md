@@ -304,13 +304,19 @@ tnc.on(
 - **repeaterPath**
 	- An array of { callsign : <string>, ssid : <number> } objects. (Array of objects)
 - **maxFrames**
-	- Maximum number of unacknowledged I frames out at any given time, 1 - 7. Default: 4. (Number)
+	- Maximum number of unacknowledged I frames out at any given time. Default: 4. (Number)
+	- If in modulo 128 mode, the maximum value is 127; otherwise the maximum is 7.
 - **packetLength**
 	- Maximum packet payload size, in bytes, minimum of 1. Default: 256.  Smaller values such as 64 are best for crappy links.  The spec says 256 is the maximum, so don't expect most TNCs to support larger values. (Number)
 - **retries**
 	- How many times to poll the other station for a response before giving up.  Default: 5.  You may wish to raise this value if using a very busy frequency, etc. (Number)
 - **hBaud**
 	- The baud rate of over-the-air communications.  Default: 1200.  It's recommended that you set this if your value differs from the default, as polling intervals and other timeouts are calculated based on this figure, among others. (Number)
+- **modulo128**
+	- (Boolean)
+	- If set prior to a connect() attempt, will attempt to send a SABME command to initiate a connection with modulo 128 sequence numbers.
+	- If read during the connected state, indicates whether the sequence numbers for this session are modulo 128. (Could be useful for tweaking the maxFrames value.)
+	- *Modulo 128 implementation is in progress.  Setting this value will have undesirable results for the time being.*
 
 <a name="ax25.Session.Methods"></a>
 #####Methods
