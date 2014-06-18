@@ -133,7 +133,7 @@ tnc.on(
 #####Methods:
 
 - **send(frame)**
-	- Sends an AX.25 frame to the TNC to be sent out over the air.  (*frame* must be an array of bytes, representing an AX.25 frame less the flags and FCS, eg. the return value of *ax25.Packet.assemble()*.)
+	- Sends an AX.25 frame to the TNC to be sent out over the air.  (*frame* must be an array of unsigned 8-bit integers, representing an AX.25 frame less the flags and FCS, eg. the return value of *ax25.Packet.assemble()*.)
 - **setHardware(value)**
 	- Most people won't need to use this ... consult your TNC's documentation.
 - **close()**
@@ -172,7 +172,7 @@ var packet = new ax25.Packet(
 );
 ```
 
-In the first example, the argument's *frame* property would be an array of unsigned ints, such as provided by the ax25.kissTNC's *frame* event.
+In the first example, the argument's *frame* property would be an array of unsigned 8-bit ints, such as provided by the ax25.kissTNC's *frame* event.
 
 The second example shows how you can assign values to all of the *ax25.Packet* object's properties upon instantiation.  If no argument is provided, these properties will be set to their default values, and you should set them as needed before calling *ax25.Packet*.assemble().
 
@@ -269,7 +269,7 @@ tnc.on(
 #####Methods
 
 - **disassemble(frame)**
-	- Where *frame* is an array of numbers representing an AX.25 frame (eg. the value provided by the ax25.kissTNC *frame* event,) disassemble *frame* and populate the above properties with the values found therein. (Note: if ax25.Packet is instantiated with a *frame* argument, this will happen automatically.) (Void)
+	- Where *frame* is an array of unsigned 8-bit integers representing an AX.25 frame (eg. the value provided by the ax25.kissTNC *frame* event,) disassemble *frame* and populate the above properties with the values found therein. (Note: if ax25.Packet is instantiated with a *frame* argument, this will happen automatically.) (Void)
 - **assemble()**
 	- When creating an outgoing frame, make a new ax25.Packet object, populate its properties as desired, then call *ax25.Packet*.assemble(), which will return an array of numbers representing an AX.25 frame (which can be supplied to ax25.kissTNC.send(frame).) (Array)
 - **log()**
