@@ -344,12 +344,11 @@ If you're receiving AX.25 frames from something other than a KISS interface atta
 
 - Support modulo 128 sequence numbers
 	- ax25.Session
-		- Add case for SABME in .receive()
-		- Flag session as modulo 128 internally
-		- allow larger maxFrames value
-		- adjust getTimeout() calculation
-		- adjust drain() and renumber() to handle larger sequence if session is flagged modulo 128
-		- implement resequencing, selective reject
+		- if attempted SABME but failed and reconnecting with SABM, reset maxFrames to sane value
+		- add SREJ case to Session.receive()
+		- send SREJ if in modulo 128 mode, have received at least one in-sequence packet, and any out-of-sequence packet have been received
+		- deal with the rest of AX.25 2.2 section 4.4.4 (fun)
+- Implement T3 link timer / polling
 - Implement XID frame type in Packet.js and Session.js (placeholders currently exist)
 - YAPP file transfers in Session or additional submodule
 	- Or some other file transfer mechanism if something better came along and has seen some uptake
