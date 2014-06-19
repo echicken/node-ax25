@@ -36,7 +36,10 @@ var Session = function(args) {
 		'sendSequence' : 0,
 		'remoteReceiveSequence' : 0,
 		'remoteBusy' : false,
-		'sendBuffer' : []
+		'sentREJ' : false,
+		'sentSREJ' : false,
+		'sendBuffer' : [],
+		'receiveBuffer' : []
 	};
 
 	var timers = {
@@ -714,16 +717,23 @@ var Session = function(args) {
 				
 			case ax25.Defs.I_FRAME:
 				if(state.connection == CONNECTED) {
+					if(packet.pollFinal)
+						response.pollFinal = true;
 					if(packet.ns == state.receiveSequence) {
-						state.receiveSequence = (state.receiveSequence + 1) % 8;
+						state.sentREJ = false;
+						state.receiveSequence =
+							(state.receiveSequence + 1)
+							%
+							((settings.modulo128) ? 128 : 8);
 						response.nr = state.receiveSequence;
 						response.type = ax25.Defs.S_FRAME_RR;
 						emit = ["data", packet.info];
-					} else {
+					} else if(state.sentREJ) {
+						response = false;
+					} else if(!state.sentREJ) {
 						response.type = ax25.Defs.S_FRAME_REJ;
+						state.sentREJ = true;
 					}
-					if(packet.pollFinal)
-						response.pollFinal = true;
 					receiveAcknowledgement(packet);
 					doDrain = true;
 				} else if(packet.command) {
