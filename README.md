@@ -348,13 +348,27 @@ If you're receiving AX.25 frames from something other than a KISS interface atta
 ---
 ####To Do:
 
-- Support modulo 128 sequence numbers
-	- ax25.Session
-		- if attempted SABME but failed and reconnecting with SABM, reset maxFrames to sane value
+- ax25.Session
+	- if attempted SABME but failed and reconnecting with SABM, reset maxFrames to sane value
+	- Implement oustanding portions of AX.25 2.2 spec sections 4.3.2.4, 4.4.4, 6.4.4.2, 6.4.4.3, 6.4.8 re: sending and receiving SREJ
 		- add SREJ case to Session.receive()
-		- send SREJ if in modulo 128 mode, have received at least one in-sequence packet, and any out-of-sequence packet have been received
-		- deal with the rest of AX.25 2.2 section 4.4.4 (fun)
-- Implement T3 link timer / polling
+			- retransmit the requested frame, with a retry event scheduled
+			- track retransmitted frames and their timed events
+			- clear timed event when remote N(R) > the retransmitted frame
+		- send SREJ if:
+			- settings.modulo128 is true
+			- state.sentREJ is false
+			- a properly-sequenced packet has been received this session
+			- any out-of-sequence packet is received
+		- set state.sentSREJ an SREJ is sent (code is in place to not send REJ if this is true)
+		- if settings.modulo128 is true, push received but out-of-sequence I frames into state.receiveBuffer to be handled when previously missed frames have been received
+		- push into an array the sequence numbers of frames that have been requested for retransmission via SREJ, splice them out once they have been received, clear state.sentSREJ condition once this array is zero-length
+		- schedule timed event for retransmitting SREJ, do not push sequence number into SREJ-request tracking array additional times
+		- implement various P/F C/R minutiae and any other remaining portions of the above-mentioned parts of the specification
+		- use of SREJ probably doesn't need to hinge on modulo 128 operation; remote capability should be determined by XID parameter negotiation if/when that gets implemented.
+		- until XID is implemented, possibly watch for returned SREJ frames in U_FRMR frames from remote, sending plain REJ instead (if that's the expected response)
+	- Implement T3 link timer / polling
 - Implement XID frame type in Packet.js and Session.js (placeholders currently exist)
+	- In ax25.Session, various items such as maxFrames, modulo 128 operation, SREJ compatibility, etc. will need to be refactored, with decisions made based on a store of remote capabilities
 - YAPP file transfers in Session or additional submodule
 	- Or some other file transfer mechanism if something better came along and has seen some uptake
