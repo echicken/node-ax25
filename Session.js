@@ -503,7 +503,7 @@ var Session = function(args) {
 		properties.repeaterPath = [];
 		for(var r = packet.repeaterPath.length - 1; r >= 0; r--) {
 			// Drop any packet that was meant for a repeater and not us
-			if(packet.repeaterPath[r].ssid&A_CRH == 0)
+			if(packet.repeaterPath[r].ssid&ax25.Defs.A_CRH == 0)
 				return false;
 			packet.repeaterPath[r].ssid|=(0<<7);
 			properties.repeaterPath.push(packet.repeaterPath[r]);
