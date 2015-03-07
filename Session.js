@@ -420,7 +420,7 @@ var Session = function(args) {
 			return;
 		}
 
-		if(timer.disconnectAttempts == settings.retries) {
+		if(timers.disconnectAttempts == settings.retries) {
 			clearTimer('disconnect');
 			emitPacket(
 				new ax25.Packet(
@@ -440,7 +440,7 @@ var Session = function(args) {
 			state.connection = DISCONNECTED;
 			return;
 		}
-		timer.disconnectAttempts++;
+		timers.disconnectAttempts++;
 		state.connection = DISCONNECTING;
 		emitPacket(
 			new ax25.Packet(
