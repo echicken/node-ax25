@@ -274,11 +274,20 @@ var Session = function(args) {
 
 	var receiveAcknowledgement = function(packet) {
 		for(var p in state.sendBuffer) {
-			if(state.sendBuffer[p].sent && state.sendBuffer[p].ns < packet.nr)
+			if(	state.sendBuffer[p].sent
+				&&
+				ax25.Utils.distanceBetween(
+					state.sendBuffer[p].ns,
+					packet.nr,
+					(settings.modulo128) ? 128 : 8
+				) < ((settings.modulo128) ? 127 : 7)
+			) {
 				state.sendBuffer.shift();
+			}
 		}
 		state.remoteReceiveSequence = packet.nr;
 		clearTimer("t1");
+		drain();
 	}
 
 	var poll = function() {
@@ -296,7 +305,7 @@ var Session = function(args) {
 					'type'					: ax25.Defs.S_FRAME_RR
 				}
 			)
-		);		
+		);
 	}
 
 	var t1Poll = function() {
