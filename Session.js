@@ -43,10 +43,16 @@ var Session = function(args) {
 	};
 
 	var timers = {
-		'connect' : false,
-		'connectAttempts' : 0,
-		'disconnect' : false,
-		'disconnectAttempts' : 0,
+		'connect' : {
+			'event' : undefined,
+			'attempts' : 0,
+			'callback' : self.connect
+		},
+		'disconnect' : {
+			'event' : undefined,
+			'attempts' : 0,
+			'callback' : self.disconnect
+		},
 		't1' : {
 			'event' : undefined,
 			'attempts' : 0,
@@ -295,18 +301,55 @@ var Session = function(args) {
 		self.emit("packet",	packet);
 	}
 
-	var getTimeout = function() {
+	// Milliseconds required to transmit the largest possible packet
+	var getMaxPacketTime = function() {
 		return Math.floor(
-			(	(((600 + (settings.packetLength * 8)) / settings.hBaud) * 2)
+			(	(	(	// Flag + Address + Control + FCS + Flag <= 600 bits
+						600
+						// Maximum possible information field length in bits
+						+ (settings.packetLength * 8)
+					// HLDC bits-per-second rate
+					) / settings.hBaud
+				)
+				// To milliseconds
 				* 1000
-			) * ((properties.repeaterPath.length > 0) ? properties.repeaterPath.length : 1)
+			)
+		); // Rounded down
+	}
+
+	var getTimeout = function() {
+		var multiplier = 0;
+		for(var p = 0; p < state.sendBuffer.length; p++) {
+			if(!state.sendBuffer.sent)
+				continue;
+			multiplier++;
+		}
+		return	(
+			(	(	// ms required to transmit largest possible packet
+					getMaxPacketTime()
+					// The number of hops from local to remote
+					* Math.max(1, properties.repeaterPath.length)
+				// Twice the amount of time for a round-trip
+				) * 4
+			)
+			/*	This isn't great, but we need to give the TNC time to
+				finish transmitting any packets we've sent to it before we
+				can reasonably start expecting a response from the remote
+				side.  A large settings.maxFrames value coupled with a
+				large number of sent but unacknowledged frames could lead
+				to a very long interval. */
+			+ (getMaxPacketTime() * Math.max(1, multiplier))
 		);
 	}
 
 	var setTimer = function(timerName) {
 		if(typeof timers[timerName].event != "undefined")
 			clearTimer(timerName);
-		timers[timerName].event = setTimeout(timers[timerName].callback, getTimeout());
+		timers[timerName].event = setInterval(
+			timers[timerName].callback,
+			// Le delai de t3 est arbitraire et code en dur, oh ho ho
+			((timerName == "t3") ? getTimeout() * 7 : getTimeout())
+		);
 	}
 
 	var clearTimer = function(timerName) {
@@ -334,7 +377,10 @@ var Session = function(args) {
 			}
 		}
 		state.remoteReceiveSequence = packet.nr;
-		if(typeof timers.t1.event != "undefined" && state.sendBuffer.length > 0) {
+		if(	typeof timers.t1.event != "undefined"
+			&&
+			state.sendBuffer.length > 0
+		) {
 			drain(true);
 			return true;
 		} else {
@@ -362,6 +408,10 @@ var Session = function(args) {
 	}
 
 	var drain = function(retransmit) {
+		if(state.remoteBusy) {
+			clearTimer("t1"); // t3 will poll
+			return;
+		}
 		if(typeof retransmit == "undefined")
 			retransmit = false;
 		var ret = false;
@@ -417,13 +467,6 @@ var Session = function(args) {
 		clearTimer("disconnect");
 		clearTimer("t3");
 
-		timers.connectAttempts++;
-		if(timers.connectAttempts == settings.retries) {
-			timers.connectAttempts = 0;
-			state.connection = DISCONNECTED;
-			return;
-		}
-
 		emitPacket(
 			new ax25.Packet(
 				{	'destinationCallsign'	: properties.remoteCallsign,
@@ -442,8 +485,15 @@ var Session = function(args) {
 		);
 
 		renumber();
-		
-		timers.connect = setTimeout(self.connect, getTimeout());
+
+		timers.connect.attempts++;
+		if(timers.connect.attempts == settings.retries) {
+			clearTimer("connect");
+			state.connection = DISCONNECTED;
+			return;
+		}
+		if(typeof timers.connect.event == "undefined")
+			setTimer("connect");
 
 	}
 
@@ -460,7 +510,7 @@ var Session = function(args) {
 			return;
 		}
 
-		if(timers.disconnectAttempts == settings.retries) {
+		if(timers.disconnect.attempts == settings.retries) {
 			clearTimer('disconnect');
 			emitPacket(
 				new ax25.Packet(
@@ -480,7 +530,8 @@ var Session = function(args) {
 			state.connection = DISCONNECTED;
 			return;
 		}
-		timers.disconnectAttempts++;
+
+		timers.disconnect.attempts++;
 		state.connection = DISCONNECTING;
 		emitPacket(
 			new ax25.Packet(
@@ -497,7 +548,9 @@ var Session = function(args) {
 				}
 			)
 		);
-		timers.disconnect = setTimeout(self.disconnect, getTimeout());
+		if(typeof timers.disconnect.event == "undefined")
+			setTimer("disconnect");
+
 	}
 
 	this.send = function(info) {
@@ -576,7 +629,7 @@ var Session = function(args) {
 				clearTimer("connect");
 				clearTimer("disconnect");
 				clearTimer("t1");
-				clearTimer("t3");
+				setTimer("t3");
 				settings.modulo128 = false;
 				renumber();
 				emit = ["connection", true];
@@ -595,7 +648,7 @@ var Session = function(args) {
 				clearTimer("connect");
 				clearTimer("disconnect");
 				clearTimer("t1");
-				clearTimer("t3");
+				setTimer("t3");
 				settings.modulo128 = true;
 				renumber();
 				emit = ["connection", true];
@@ -628,11 +681,13 @@ var Session = function(args) {
 				if(state.connection == CONNECTING) {
 					state.connection = CONNECTED;
 					clearTimer("connect");
+					setTimer("t3");
 					response = false;
 					doDrain = true;
 				} else if(state.connection == DISCONNECTING) {
 					state.connection = DISCONNECTED;
 					clearTimer("disconnect");
+					clearTimer("t3");
 					response = false;
 				} else if(state.connection == CONNECTED) {
 					this.connect();
@@ -706,8 +761,7 @@ var Session = function(args) {
 				
 			case ax25.Defs.S_FRAME_RR:
 				if(state.connection == CONNECTED) {
-					if(state.remoteBusy)
-						state.remoteBusy = false;
+					state.remoteBusy = false;
 					if(packet.command && packet.pollFinal) {
 						response.type = ax25.Defs.S_FRAME_RR;
 						response.pollFinal = true;
@@ -740,6 +794,7 @@ var Session = function(args) {
 				
 			case ax25.Defs.S_FRAME_REJ:
 				if(state.connection == CONNECTED) {
+					state.remoteBusy = false;
 					if(packet.command && packet.pollFinal) {
 						response.type = ax25.Defs.S_FRAME_RR;
 						response.pollFinal = true;
