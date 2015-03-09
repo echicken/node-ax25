@@ -54,6 +54,23 @@ var Session = function(args) {
 	};
 
 	this.__defineGetter__(
+		"connected",
+		function() {
+			if(state.connection == CONNECTED)
+				return true;
+			else
+				return false;
+		}
+	);
+
+	this.__defineGetter__(
+		"connection",
+		function() {
+			return state.connection;
+		}
+	);
+
+	this.__defineGetter__(
 		"localCallsign",
 		function() {
 			return properties.localCallsign;
