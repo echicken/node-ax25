@@ -47,10 +47,32 @@ var Session = function(args) {
 		'connectAttempts' : 0,
 		'disconnect' : false,
 		'disconnectAttempts' : 0,
-		't1' : false,
-		't1Attempts' : 0,
-		't3' : false,
-		't3Attempts' : 0
+		't1' : {
+			'event' : undefined,
+			'attempts' : 0,
+			'callback' : function() {
+				if(timers.t1.attempts == settings.retries) {
+					clearTimer("t1");
+					self.connect();
+					return;
+				}
+				timers.t1.attempts++;
+				poll();
+			}
+		},
+		't3' : {
+			'event' : undefined,
+			'attempts' : 0,
+			'callback' : function() {
+				if(typeof timers.t1.event != "undefined")
+					return;
+				if(timers.t3.attempts == settings.retries) {
+					clearTimer("t3");
+					self.disconnect();
+					return;
+				}
+			}
+		}
 	};
 
 	this.__defineGetter__(
@@ -262,14 +284,6 @@ var Session = function(args) {
 		}
 	);
 
-	var getTimeout = function() {
-		return Math.floor(
-			(	(((600 + (settings.packetLength * 8)) / settings.hBaud) * 2)
-				* 1000
-			) * ((properties.repeaterPath.length > 0) ? properties.repeaterPath.length : 1)
-		);
-	}
-
 	var emitPacket = function(packet) {
 		if(typeof packet == "undefined" || !(packet instanceof ax25.Packet)) {
 			self.emit(
@@ -281,30 +295,52 @@ var Session = function(args) {
 		self.emit("packet",	packet);
 	}
 
+	var getTimeout = function() {
+		return Math.floor(
+			(	(((600 + (settings.packetLength * 8)) / settings.hBaud) * 2)
+				* 1000
+			) * ((properties.repeaterPath.length > 0) ? properties.repeaterPath.length : 1)
+		);
+	}
+
+	var setTimer = function(timerName) {
+		if(typeof timers[timerName].event != "undefined")
+			clearTimer(timerName);
+		timers[timerName].event = setTimeout(timers[timerName].callback, getTimeout());
+	}
+
 	var clearTimer = function(timerName) {
-		if(typeof timers[timerName] != "undefined" && timers[timerName]) {
+		if(typeof timers[timerName].event != "undefined") {
 			clearTimeout(timers[timerName]);
-			timers[timerName] = false;
+			timers[timerName].event = undefined;
 		}
-		timers[timerName + "Attempts"] = 0;
+		timers[timerName].attempts = 0;
 	}
 
 	var receiveAcknowledgement = function(packet) {
-		for(var p in state.sendBuffer) {
+		for(var p = 0; p < state.sendBuffer.length; p++) {
 			if(	state.sendBuffer[p].sent
 				&&
+				state.sendBuffer[p].ns != packet.nr
+				&&
 				ax25.Utils.distanceBetween(
-					state.sendBuffer[p].ns,
 					packet.nr,
-					(settings.modulo128) ? 128 : 8
-				) < ((settings.modulo128) ? 127 : 7)
+					state.sendBuffer[p].ns,
+					((settings.modulo128) ? 128 : 8)
+				) <= settings.maxFrames
 			) {
-				state.sendBuffer.shift();
+				state.sendBuffer.slice(p, 1);
+				p--;
 			}
 		}
 		state.remoteReceiveSequence = packet.nr;
-		clearTimer("t1");
-		drain();
+		if(typeof timers.t1.event != "undefined" && state.sendBuffer.length > 0) {
+			drain(true);
+			return true;
+		} else {
+			clearTimer("t1");
+			return false;
+		}
 	}
 
 	var poll = function() {
@@ -325,26 +361,6 @@ var Session = function(args) {
 		);
 	}
 
-	var t1Poll = function() {
-		if(timers.t1Attempts == settings.retries) {
-			clearTimer("t1");
-			self.connect();
-			return;
-		}
-		timers.t1Attempts++;
-		poll();
-	}
-
-	var t3Poll = function() {
-		if(typeof timers.t1 != "boolean")
-			return;
-		if(timers.t3Attempts == settings.retries) {
-			clearTimer("t3");
-			self.disconnect();
-			return;
-		}
-	}
-
 	var drain = function(retransmit) {
 		if(typeof retransmit == "undefined")
 			retransmit = false;
@@ -359,21 +375,19 @@ var Session = function(args) {
 				ax25.Utils.distanceBetween(
 					state.sendSequence,
 					state.remoteReceiveSequence,
-					(settings.modulo128) ? 128 : 8
-				) < ((settings.modulo128) ? 127 : 7)
-				&&
-				packet < settings.maxFrames
+					((settings.modulo128) ? 128 : 8)
+				) < settings.maxFrames
 			) {
 				state.sendBuffer[packet].ns = state.sendSequence;
 				state.sendBuffer[packet].nr = state.receiveSequence;
-				emitPacket(state.sendBuffer[packet]);
 				state.sendBuffer[packet].sent = true;
 				state.sendSequence = (state.sendSequence + 1) % ((settings.modulo128) ? 128 : 8);
 				ret = true;
+				emitPacket(state.sendBuffer[packet]);
 			}
 		}
 		if(ret)
-			timers.t1 = setTimeout(poll, getTimeout());
+			setTimer("t1");
 		return ret;
 	}
 
@@ -549,7 +563,7 @@ var Session = function(args) {
 		);
 
 		var doDrain = false;
-		var emit = false;
+		var emit = [];
 
 		switch(packet.type) {
 		
@@ -694,14 +708,13 @@ var Session = function(args) {
 				if(state.connection == CONNECTED) {
 					if(state.remoteBusy)
 						state.remoteBusy = false;
-					receiveAcknowledgement(packet);
 					if(packet.command && packet.pollFinal) {
 						response.type = ax25.Defs.S_FRAME_RR;
 						response.pollFinal = true;
 					} else {
 						response = false;
 					}
-					doDrain = true;
+					doDrain = receiveAcknowledgement(packet);
 				} else if(packet.command) {
 					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = true;
@@ -718,7 +731,7 @@ var Session = function(args) {
 					} else {
 						response = false;
 					}
-					timers.t1 = setTimeout(poll, getTimeout());
+					setTimer("t1");
 				} else if(packet.command) {
 					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = true;
@@ -727,13 +740,13 @@ var Session = function(args) {
 				
 			case ax25.Defs.S_FRAME_REJ:
 				if(state.connection == CONNECTED) {
-					receiveAcknowledgement(packet);
 					if(packet.command && packet.pollFinal) {
 						response.type = ax25.Defs.S_FRAME_RR;
 						response.pollFinal = true;
 					} else {
 						response = false;
 					}
+					receiveAcknowledgement(packet);
 					drain(true);
 				} else {
 					response.type = ax25.Defs.U_FRAME_DM;
@@ -760,8 +773,7 @@ var Session = function(args) {
 						response.type = ax25.Defs.S_FRAME_REJ;
 						state.sentREJ = true;
 					}
-					receiveAcknowledgement(packet);
-					doDrain = true;
+					doDrain = receiveAcknowledgement(packet);
 				} else if(packet.command) {
 					response.type = ax25.Defs.U_FRAME_DM;
 					response.pollFinal = true;
@@ -780,7 +792,7 @@ var Session = function(args) {
 		if(doDrain)
 			drain();
 
-		if(Array.isArray(emit) && emit.length == 2)
+		if(emit.length == 2)
 			this.emit(emit[0], emit[1]);
 
 	}
