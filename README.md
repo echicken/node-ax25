@@ -27,7 +27,13 @@ If you go this route and run the examples shown below, either rename the node-ax
 
 [node-serialport](https://github.com/voodootikigod/node-serialport)
 
-The node-ax25 module is made to interface with a KISS TNC over a serial port.  (It would, however, be possible to use it with another kind of interface.)  If you follow the installation instructions above, npm will attempt to install the 'serialport' module as a dependency.  Installation of the 'serialport' module can be a bit tricky depending on the specifics of your system; if you run into problems, be sure to read the installation instructions on the [node-serialport](https://github.com/voodootikigod/node-serialport) project page.
+The node-ax25 module is made to interface with a KISS TNC over a serial port.  (It would, however, be possible to use it with another kind of interface.)  When you run *npm install*, the required [node-serialport](https://github.com/voodootikigod/node-serialport) module will be installed automatically.
+
+####Compatibility
+
+[ax25.kissTNC](#ax25.kissTNC) should work with any KISS TNC, and has been tested with several different models.
+
+Yes, [ax25.kissTNC](#ax25.kissTNC) has been tested and found to work with [soundmodem](http://soundmodem.vk4msl.yi.org/), which emulates a KISS TNC.
 
 ---
 
@@ -140,6 +146,8 @@ tnc.on(
 	- Close the connection to the TNC.
 - **exitKISS()**
 	- Bring the TNC out of KISS mode (if your TNC has a terminal mode.)
+
+---
 
 <a name="ax25.Packet"></a>
 ####ax25.Packet
@@ -275,6 +283,8 @@ tnc.on(
 - **log()**
 	- Returns a line of text describing some of the packet's properties, suitable for logging purposes. (String)
 
+---
+
 <a name="ax25.Session"></a>
 ####ax25.Session
 
@@ -375,7 +385,6 @@ If you're receiving AX.25 frames from something other than a KISS interface atta
 		- implement various P/F C/R minutiae and any other remaining portions of the above-mentioned parts of the specification
 		- use of SREJ probably doesn't need to hinge on modulo 128 operation; remote capability should be determined by XID parameter negotiation if/when that gets implemented.
 		- until XID is implemented, possibly watch for returned SREJ frames in U_FRMR frames from remote, sending plain REJ instead (if that's the expected response)
-	- Implement T3 link timer / polling
 - Implement XID frame type in Packet.js and Session.js (placeholders currently exist)
 	- In ax25.Session, various items such as maxFrames, modulo 128 operation, SREJ compatibility, etc. will need to be refactored, with decisions made based on a store of remote capabilities
 - YAPP file transfers in Session or additional submodule
