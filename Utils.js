@@ -38,7 +38,7 @@ var Utils = function() {
 	/*	distanceBetween(leader, follower, modulus)
 		Find the difference between 'leader' and 'follower' modulo 'modulus'. */
 	this.distanceBetween = function(l, f, m) {
-		return (l < f) ? l + (m - f) : l - f;
+		return (l < f) ? (l + (m - f)) : (l - f);
 	}
 
 	// Turns a string into an array of character codes
