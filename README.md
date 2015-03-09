@@ -293,6 +293,14 @@ tnc.on(
 <a name="ax25.Session.Properties"></a>
 #####Properties
 
+- **connected**
+	- Whether or not a connection has been established with the remote station. (Boolean)
+- **connection**
+	- More fine-grained connection-state info than *connected*. (Number)
+		- 1 = Disconnected. (Not connected, not trying to connect or disconnect.)
+		- 2 = Connected. (Connected and ready.)
+		- 3 = Connecting. (Attempting to connect, waiting for acknowledgement or timeout.)
+		- 4 = Disconnecting. (Requested disconnect, waiting for acknowledgement or timeout.)
 - **remoteCallsign**
 	- The remote station's callsign, up to six alphanumerics. (String)
 - **remoteSSID**
