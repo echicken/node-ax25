@@ -325,7 +325,7 @@ var Session = function(args) {
 			multiplier++;
 		}
 		return	(
-			(	(	// ms required to transmit largest possible packet
+			(	(	// ms required to transmit alrgest possible packet
 					getMaxPacketTime()
 					// The number of hops from local to remote
 					* Math.max(1, properties.repeaterPath.length)
@@ -354,7 +354,7 @@ var Session = function(args) {
 
 	var clearTimer = function(timerName) {
 		if(typeof timers[timerName].event != "undefined") {
-			clearTimeout(timers[timerName]);
+			clearInterval(timers[timerName].event);
 			timers[timerName].event = undefined;
 		}
 		timers[timerName].attempts = 0;
@@ -372,7 +372,7 @@ var Session = function(args) {
 					((settings.modulo128) ? 128 : 8)
 				) <= settings.maxFrames
 			) {
-				state.sendBuffer.slice(p, 1);
+				state.sendBuffer.splice(p, 1);
 				p--;
 			}
 		}
@@ -417,6 +417,7 @@ var Session = function(args) {
 		var ret = false;
 		for(var packet = 0; packet < state.sendBuffer.length; packet++) {
 			if(retransmit && state.sendBuffer[packet].sent) {
+				state.sendBuffer[packet]
 				emitPacket(state.sendBuffer[packet]);
 				ret = true;
 			} else if(
