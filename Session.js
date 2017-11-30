@@ -452,12 +452,12 @@ var Session = function(args) {
 
 	this.connect = function() {
 
-		if(!state.initialized) {
-			self.emit(
-				"error",
-				"ax25.Session.connect: localCallsign and remoteCallsign not set."
-			);
-		}
+		//if(!state.initialized) {
+		//	self.emit(
+		//		"error",
+		//		"ax25.Session.connect: localCallsign and remoteCallsign not set."
+		//	);
+		//}
 
 		state.connection = CONNECTING;
 		state.receiveSequence = 0;
