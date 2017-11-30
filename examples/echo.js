@@ -1,6 +1,9 @@
 /*  AX.25 echo server example
 Listens for connections on a single TNC destined for a single callsign +
-SSID pair, echoes whatever the client sends back to it. */
+SSID pair, echoes whatever the client sends back to it. 
+
+Removing extreme profanity from comment.  Seriously?
+*/
 
 var ax25 = require("../index.js"),
 util = require("util");
