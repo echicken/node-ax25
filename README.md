@@ -1,10 +1,15 @@
-#node-ax25
+# node-ax25
 
 A KISS &amp; AX.25 packet radio stack for node.js.
 
+*30/11/2017 Note: I'm in the process of rewriting this module entirely, and
+probably moving the KISS stuff into a separate module.  I would not recommend
+putting much effort into using or revising this codebase at the moment, unless
+you wish to maintain your own fork.*
+
 ---
 
-###Installation
+### Installation
 
 ```sh
 npm install ax25
@@ -23,13 +28,13 @@ This will get you the latest code, which may be more unstable than what's in the
 
 If you go this route and run the examples shown below, either rename the node-ax25 directory to "ax25" or modify the require() paths accordingly.
 
-####Dependencies
+#### Dependencies
 
 [node-serialport](https://github.com/voodootikigod/node-serialport)
 
 The node-ax25 module is made to interface with a KISS TNC over a serial port.  (It would, however, be possible to use it with another kind of interface.)  When you run *npm install*, the required [node-serialport](https://github.com/voodootikigod/node-serialport) module will be installed automatically.
 
-####Compatibility
+#### Compatibility
 
 [ax25.kissTNC](#ax25.kissTNC) should work with any KISS TNC, and has been tested with several different models.
 
@@ -37,7 +42,7 @@ Yes, [ax25.kissTNC](#ax25.kissTNC) has been tested and found to work with [sound
 
 ---
 
-####The Stack
+#### The Stack
 
 - [ax25.kissTNC](#ax25.kissTNC)
 	- Provides an API for communicating with a KISS TNC on a serial port
@@ -62,7 +67,7 @@ Yes, [ax25.kissTNC](#ax25.kissTNC) has been tested and found to work with [sound
 
 ---
 <a name="ax25.kissTNC"></a>
-####ax25.kissTNC
+#### ax25.kissTNC
 
 ```js
 var tnc = new ax25.kissTNC(
@@ -104,7 +109,7 @@ tnc.on(
 ```
 
 <a name="ax25.kissTNC.Events"></a>
-#####Events:
+##### Events:
 
 - **opened**
 	- The connection to the TNC has been opened successfully.
@@ -118,7 +123,7 @@ tnc.on(
 	- A KISS frame was sent to the TNC (the number of bytes sent to the TNC will be supplied as an argument to your callback function.  Not very useful.)
 
 <a name="ax25.kissTNC.Properties"></a>
-#####Properties:
+##### Properties:
 
 - **serialPort**
 	- eg. "COM1", or "/dev/ttyUSB0". (String)
@@ -136,7 +141,7 @@ tnc.on(
 	- Boolean, default: false. (Boolean)
 
 <a name="ax25.kissTNC.Methods"></a>
-#####Methods:
+##### Methods:
 
 - **send(frame)**
 	- Sends an AX.25 frame to the TNC to be sent out over the air.  (*frame* must be an array of unsigned 8-bit integers, representing an AX.25 frame less the flags and FCS, eg. the return value of *ax25.Packet.assemble()*.)
@@ -150,7 +155,7 @@ tnc.on(
 ---
 
 <a name="ax25.Packet"></a>
-####ax25.Packet
+#### ax25.Packet
 
 ```js
 var packet = new ax25.Packet({ 'frame' : frame });
@@ -242,7 +247,7 @@ tnc.on(
 ```
 
 <a name="ax25.Packet.Properties"></a>
-#####Properties
+##### Properties
 
 - **destinationCallsign**
 	- The destination callsign, up to six alphanumerics. (String)
@@ -274,7 +279,7 @@ tnc.on(
 	- The information field of an I or UI frame, as a string. (String)
 
 <a name="ax25.Packet.Methods"></a>
-#####Methods
+##### Methods
 
 - **disassemble(frame)**
 	- Where *frame* is an array of unsigned 8-bit integers representing an AX.25 frame (eg. the value provided by the ax25.kissTNC *frame* event,) disassemble *frame* and populate the above properties with the values found therein. (Note: if ax25.Packet is instantiated with a *frame* argument, this will happen automatically.) (Void)
@@ -286,10 +291,10 @@ tnc.on(
 ---
 
 <a name="ax25.Session"></a>
-####ax25.Session
+#### ax25.Session
 
 <a name="ax25.Session.Events"></a>
-#####Events
+##### Events
 
 - **packet**
 	- An outgoing packet is ready for transmission.  Your callback will be provided with an ax25.Packet object which can be sent with *ax25.kissTNC*.send(*packet*.assemble());
@@ -301,7 +306,7 @@ tnc.on(
 	- Something done borked.  Your callback will be provided with a helpful textual error message.
 
 <a name="ax25.Session.Properties"></a>
-#####Properties
+##### Properties
 
 - **connected**
 	- Whether or not a connection has been established with the remote station. (Boolean)
@@ -337,7 +342,7 @@ tnc.on(
 	- *Modulo 128 implementation is in progress.  Setting this value will have undesirable results for the time being.*
 
 <a name="ax25.Session.Methods"></a>
-#####Methods
+##### Methods
 
 - **connect()**
 	- Opens a connection to another station.  Remote and Local callsign and SSID properties must be set first. (Void)
@@ -353,7 +358,7 @@ tnc.on(
 ---
 
 <a name="ax25.Notes"></a>
-#####Notes on using ax25.Packet and ax25.Session without ax25.kissTNC
+##### Notes on using ax25.Packet and ax25.Session without ax25.kissTNC
 
 If you're receiving AX.25 frames from something other than a KISS interface attached to a serial port, you can still use ax25.Packet for packet assembly/disassembly, and you can also use ax25.Session to maintain stateful connections.
 
@@ -364,7 +369,7 @@ If you're receiving AX.25 frames from something other than a KISS interface atta
 *I know that these arrays of uint8s are kinda dumb.  I didn't really know about Buffer or Uint8Array when I started this thing, and I'm too lazy to make those changes right now.*
 
 ---
-####To Do:
+#### To Do:
 
 - ax25.Session
 	- if attempted SABME but failed and reconnecting with SABM, reset maxFrames to sane value
