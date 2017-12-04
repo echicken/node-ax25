@@ -320,7 +320,7 @@ class Packet {
             this.command = address.crh;
             address = parse_address(data, 7);
             this.source = address;
-            this.resposne = address.crh;
+            this.response = address.crh;
             let offset = 14;
             if (!address.ext) {
                 const repeater_path = [];
