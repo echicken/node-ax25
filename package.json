@@ -1,33 +1,24 @@
 {	"name" : "ax25",
-	"version" : "1.1.2",
-	"license" : "BSD-3-Clause",
-	"description" : "A KISS & AX.25 packet radio stack for node.js.",
+	"version" : "2.0.0",
+	"license" : "MIT",
+	"description" : "Javascript classes for the AX.25 (packet radio) protocol.",
 	"author" : {
-		"name" : "Derek Mullin",
-		"email" : "derekmullin@gmail.com"
+		"name" : "echicken",
+		"email" : "echicken@bbs.electronicchicken.com"
 	},
-	"contributors" : [
-		{	"name" : "Derek Mullin (VE3XEC)",
-			"email" : "derekmullin@gmail.com"
-		}
-	],
 	"main" : "./index.js",
 	"repository" : {
 		"type" : "git",
 		"url" : "https://github.com/echicken/node-ax25.git"
 	},
-	"dependencies" : {
-		"serialport" : "= 2.1.2"
-	},
 	"engines" : {
-		"node" : ">= 0.10.24"
+		"node" : ">= 6.1.0"
 	},
 	"keywords" : [
 		"ax25",
 		"ax.25",
 		"ham",
 		"packet",
-		"radio",
-		"kiss"
+		"radio"
 	]
 }
