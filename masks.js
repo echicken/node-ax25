@@ -46,7 +46,7 @@ const Masks = {
     	x25 : 1, // ISO 8208/CCITT X.25 PLP
     	ctcpip : (3<<1), // Compressed TCP/IP packet. Van Jacobson (RFC 1144)
     	utcpip : 7, // Uncompressed TCP/IP packet. Van Jacobson (RFC 1144)
-    	segf : (1<<4), // Segmentation fragment
+    	segf : (1<<3), // Segmentation fragment
     	texnet : 3|(3<<6), // TEXNET datagram protocol
     	lqp : (1<<2)|(3<<6), // Link Quality Protocol
     	atalk : (1<<1)|(1<<3)|(3<<6), // Appletalk
