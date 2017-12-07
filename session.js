@@ -108,28 +108,30 @@ class Session extends EventEmitter {
             case 'i_frame':
                 // this needs plenty of work re: outstanding rej conditions among others;
                 // I will have to peruse the spec a few more times and build this out
-                // if connected
-                //   flush sent frames up to N(R) - 1
-                //   update va
-                //   unset t1
-                //   if there are sent I frames that remain unacknowledged
-                //     set t1
-                //   if frame is in sequence
-                //     increment vr
-                //     if this is not a segment
-                //       emit data event
-                //     else if this is a segment
-                //       store frame in rx[]
-                //       if this is the first segment
-                //         set a 'receiving segmented data' flag in state
-                //       else if this is the final segment
-                //         splice rx[] from 0 and emit data event (or segmented data event?)
-                //     if P bit set
-                //       resond with RR or RNR with F bit set
-                //     else if we have I frames we can send (mind ws and md)
-                //       send outstanding I frames up to window size
-                //     else
-                //       send an RR frame (after t2 timeout?)
+                //  if connected
+                //    flush sent frames up to N(R) - 1
+                //    update va
+                //    unset t1
+                //    if there are sent I frames that remain unacknowledged
+                //      set t1
+                //    if frame is in sequence
+                //      increment vr
+                //      unset any existing state.rm condition
+                //      if this is not a segment
+                //        emit data event
+                //      else if this is a segment
+                //        store frame in rx[]
+                //        if this is the first segment
+                //          set a 'receiving segmented data' flag in state
+                //        else if this is the final segment
+                //          splice rx[] from 0 and emit data event (or segmented data event?)
+                //          unset 'receiving segmented data' flag
+                //      if P bit set
+                //        resond with RR or RNR with F bit set
+                //      else if we have I frames we can send (mind ws and md)
+                //        send outstanding I frames up to window size
+                //      else
+                //        send an RR frame (after t2 timeout?)
                 //    else if rm is IREJ
                 //      if P bit set
                 //        send a REJ frame with F bit set
