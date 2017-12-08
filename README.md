@@ -1,11 +1,8 @@
 # node-ax25
 
-A KISS &amp; AX.25 packet radio stack for node.js.
+*07/12/2017 - Notice: I have started [a new branch](https://github.com/echicken/node-ax25/tree/es6rewrite) under which I am rewriting this entire module.  The AX.25 and KISS TNC portions of this module will be decoupled, as a new, separate [KISS TNC module](https://github.com/echicken/kiss-tnc) has been created.  I do not recommend putting much effort into using the current module, nor putting any effort into improving it.*
 
-*30/11/2017 Note: I'm in the process of rewriting this module entirely, and
-probably moving the KISS stuff into a separate module.  I would not recommend
-putting much effort into using or revising this codebase at the moment, unless
-you wish to maintain your own fork.*
+A KISS &amp; AX.25 packet radio stack for node.js.
 
 ---
 
