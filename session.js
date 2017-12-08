@@ -62,6 +62,7 @@ class Session extends EventEmitter {
             md : 8, // Modulo, 8 or 128
             n1 : 256, // Information field length, default 256
             n2 : 10, // Ack retries; if t1 expires n2 times in a row, session ends
+            rb : false, // Remote Busy (RNR was received)
             rm : SREJ, // Rejection Mode: IREJ, SREJ, or SREJREJ
             t1 : null, // Acknowledgement Timer T1
             t2 : null, // Response Delay Timer T2
@@ -97,105 +98,109 @@ class Session extends EventEmitter {
 
     receive(packet) {
 
-        // This section is slowly being populated with notes as I peruse the 2.2
-        // spec as it exists here: https://www.tapr.org/pdf/AX25.2.2.pdf
-        // Last time around (oops) I used 2.0: https://www.tapr.org/pub_ax25.html
-        // Where the spec gives clear instructions on how to respond to a given
-        // frame based on the current state of the connection, I'll sketch out
-        // the process to be followed.  From there, I'll break logic out into
-        // reusable procedures where it makes sense to do so.
-        switch (packet.type_name) { // Would be more efficient to use packet.type and Masks
-            case 'i_frame':
-                // this needs plenty of work re: outstanding rej conditions among others;
-                // I will have to peruse the spec a few more times and build this out
-                //  if connected
-                //    flush sent frames up to N(R) - 1
-                //    update va
-                //    unset t1
-                //    if there are sent I frames that remain unacknowledged
-                //      set t1
-                //    if frame is in sequence
-                //      increment vr
-                //      unset any existing state.rm condition
-                //      if this is not a segment
-                //        emit data event
-                //      else if this is a segment
-                //        store frame in rx[]
-                //        if this is the first segment
-                //          set a 'receiving segmented data' flag in state
-                //        else if this is the final segment
-                //          splice rx[] from 0 and emit data event (or segmented data event?)
-                //          unset 'receiving segmented data' flag
-                //      if P bit set
-                //        resond with RR or RNR with F bit set
-                //      else if we have I frames we can send (mind ws and md)
-                //        send outstanding I frames up to window size
-                //      else
-                //        send an RR frame (after t2 timeout?)
-                //    else if rm is IREJ
-                //      if P bit set
-                //        send a REJ frame with F bit set
-                //      else if no outstanding IREJ condition
-                //        send a REJ frame
-                //        set outstanding IREJ condition flag (add to state)
-                //      discard the frame
-                //    else if rm is SREJ
-                //      if P bit set
-                //        send a REJ frame with F bit set
-                //      else if no outstanding SREJ condition
-                //        send an SREJ with P bit set and N(R) current vr
-                //        set 'outstanding SREJ condition' flag (add to state)
-                //      else
-                //        send an SREJ with P bit set to 0 and N(R) current vr
-                //      store the frame in rx[]
-                //    else if rm is SREJREJ
-                //      this is poorly described in the spec IMHO; I will tackle
-                //      it when I'm less sleepy.
-                //  else (if disconnected)
-                //    if P bit set
-                //      respond with DM with F bit set
-                break;
-            case 's_frame_rr':
-                // if connected and P bit set, respond with RR, RNR, or REJ with F bit set
-                // else if disconnected and P bit set, respond with DM with F bit set
-                break;
-            case 's_frame_rnr':
-                // if connected and P bit set, respond with RR, RNR, or REJ with F bit set
-                // else if disconnected and P bit set, respond with DM with F bit set
-                break;
-            case 's_frame_rej':
-                // if connected and P bit set, respond with RR, RNR, or REJ with F bit set
-                // else if disconnected and P bit set, respond with DM with F bit set
-                break;
-            case 's_frame_srej':
-                // if connected and P bit set, respond with RR, RNR, or REJ with F bit set
-                // else if disconnected and P bit set, respond with DM with F bit set
-                break;
-            case 'u_frame_sabm':
-                // if P bit set, respond with UA or DM with F bit set
-                break;
-            case 'u_frame_sabme':
-                // if P bit set, respond with UA or DM with F bit set
-                break;
-            case 'u_frame_disc':
-                // if P bit set, respond with UA or DM with F bit set
-                break;
-            case 'u_frame_dm':
-                break;
-            case 'u_frame_ua':
-                break;
-            case 'u_frame_frmr':
-                // Examine payload
-                break;
-            case 'u_frame_ui':
-                break;
-            case 'u_frame_xid':
-                break;
-            case 'u_frame_test':
-                break;
-            default:
-                break;
-        }
+        // This is just me sketching out how to process each type of frame as it
+        // is received, as well as I can interpret from the spec.  These notes
+        // are incomplete and will be built out as I go through the AX.25 2.2
+        // document a few times.  The actual code will be a somewhat condensed
+        // version of this, with functions being called for repetitive stuff.  I
+        // expect most of this to end up in a switch(){} block, but will just use
+        // my own sloppy brand of pseudocode for now.
+
+        //  if I frame
+        //    if connected
+        //      flush sent frames up to N(R) - 1
+        //      update va
+        //      unset t1
+        //      if there are sent I frames that remain unacknowledged
+        //        set t1
+        //      if frame is in sequence
+        //        increment vr
+        //        unset any existing state.rm condition
+        //        if this is not a segment
+        //          emit data event
+        //        else if this is a segment
+        //          store frame in rx[]
+        //          if this is the first segment
+        //            set a 'receiving segmented data' flag in state
+        //          else if this is the final segment
+        //            splice rx[] from 0 and emit data event (or segmented data event?)
+        //            unset 'receiving segmented data' flag
+        //        if P bit set
+        //          resond with RR or RNR with F bit set
+        //        else if we have I frames we can send (mind ws and md)
+        //          send outstanding I frames up to window size
+        //        else
+        //          send an RR frame (after t2 timeout?)
+        //      else if rm is IREJ
+        //        if P bit set
+        //          send a REJ frame with F bit set
+        //        else if no outstanding IREJ condition
+        //          send a REJ frame
+        //          set outstanding IREJ condition flag (add to state)
+        //        discard the frame
+        //      else if rm is SREJ
+        //        if P bit set
+        //          send a REJ frame with F bit set
+        //        else if no outstanding SREJ condition
+        //          send an SREJ with P bit set and N(R) current vr
+        //          set 'outstanding SREJ condition' flag (add to state)
+        //        else
+        //          send an SREJ with P bit set to 0 and N(R) current vr
+        //        store the frame in rx[]
+        //      else if rm is SREJREJ
+        //        this is poorly described in the spec IMHO; I will tackle
+        //        it when I'm less sleepy.
+        //    else (if disconnected)
+        //      if command and P bit set
+        //        respond with DM with F bit set
+        //  else if s_frame_rr
+        //    set state.rb to false
+        //    if connected and P bit set
+        //      respond with RR, RNR, or REJ with F bit set
+        //    else if disconnected and P bit set
+        //      respond with DM with F bit set
+        //  else if s_frame_rnr
+        //    if connected and P bit set
+        //      respond with RR, RNR, or REJ with F bit set
+        //    else if disconnected and P bit set
+        //      respond with DM with F bit set
+        //  else if s_frame_rej
+        //    set state.rb to false
+        //    if connected and P bit set
+        //      respond with RR, RNR, or REJ with F bit set
+        //    else if disconnected and P bit set
+        //      respond with DM with F bit set
+        //  else if s_frame_srej
+        //    if connected and P bit set
+        //      respond with RR, RNR, or REJ with F bit set
+        //    else if disconnected and P bit set
+        //      respond with DM with F bit set
+        //  else if u_frame_sabm
+        //    set state.rb to false
+        //    if P bit set
+        //      respond with UA or DM with F bit set
+        //  else if u_frame_sabme
+        //    set state.rb to false
+        //    if P bit set
+        //      respond with UA or DM with F bit set
+        //  else if u_frame_disc
+        //    if P bit set
+        //      respond with UA or DM with F bit set
+        //  else if u_frame_dm
+        //    do something
+        //  else if u_frame_ua
+        //    set state.rb to false
+        //    check state.cs, this may be in response to a SABM(E) we sent
+        //  else if u_frame_frmr
+        //    examine payload and react accordingly (remote is older version or something)
+        //  else if u_frame_ui
+        //    do something
+        //  else if u_frame_xid
+        //    set parameters according to capabilities of remote side
+        //  else if u_frame_test
+        //    do something
+        //  else
+        //    unknown frame type; silently drop?
 
     }
 
