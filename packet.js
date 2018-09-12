@@ -99,7 +99,8 @@ class Packet {
             poll_final : false,
             command : false,
             response : false,
-            payload : Buffer.from([])
+            payload : Buffer.from([]),
+            sent : false,  // for session.js's use
         };
 
         // Your program should not use Packet[_window_size, _set, _get] directly
@@ -257,6 +258,18 @@ class Packet {
             throw `Invalid payload ${value}`;
         } else {
             this._set('payload', value);
+        }
+    }
+
+    get sent() {
+        return this._get('sent');
+    }
+
+    set sent(value) {
+        if (typeof value != 'boolean') {
+            throw `Invalid sent ${value}`;
+        } else {
+            this._set('sent', value);
         }
     }
 
