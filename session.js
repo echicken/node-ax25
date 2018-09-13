@@ -338,17 +338,17 @@ class Session extends EventEmitter {
                 packetbits += (pkt.payload.byteLength * 8) + MAX_PKT_HEADER_BITS;
 
         });
-		return Math.floor((packet_bits/this.settings.baud)*1000);
+        return Math.floor((packet_bits/this.settings.baud)*1000);
     }
 
-	// Milliseconds required to transmit the largest possible packet.
+    // Milliseconds required to transmit the largest possible packet.
     // With a 256-byte packet (2048 butes):
     //   At 1200 baud, it works out to about 2.2 seconds.
     //   At 4800 baud, it works out to about 0.55 seconds
-	maxPacketSendTime() {
+    maxPacketSendTime() {
         let packet_bits = MAX_PKT_HEADER_BITS + (this.max_iframe_data * 8);
-		return Math.floor((packet_bits/this.settings.baud)*1000);
-	}
+        return Math.floor((packet_bits/this.settings.baud)*1000);
+    }
 
     t1interval() {
         // this varies depending on how many items are in the send queue
@@ -375,12 +375,12 @@ class Session extends EventEmitter {
 
     // This is our low-level send routine. Everything that wants to send a
     // packet calls into this.
-	emitPacket(packet) {
-		if (typeof packet == "undefined" || !(packet instanceof Packet)) {
+    emitPacket(packet) {
+        if (typeof packet == "undefined" || !(packet instanceof Packet)) {
             throw 'emitPacket - Invalid packet';
-		}
-		this.emit("packet",	packet);
-	}
+        }
+        this.emit("packet",    packet);
+    }
 
     // create a brand new packet. 
     createPacket(type, poll_final=false, command=false, payload=false) {
@@ -422,10 +422,10 @@ class Session extends EventEmitter {
     // Default to true because when the t1 timer expires it needs to
     // call this as true.
     // 
-	sendRR(pollFinal=true) {
-		emitPacket(createPacket(masks.control.frame_types.s_frame.subtypes.rr,
+    sendRR(pollFinal=true) {
+        emitPacket(createPacket(masks.control.frame_types.s_frame.subtypes.rr,
                                 pollFinal, true));
-	}
+    }
 
 
     // Send the packets in the out queue.
@@ -441,7 +441,7 @@ class Session extends EventEmitter {
     // packets and any new packets (up to max_frames)
     //
     // Otherwise, we just send new packets (up to max_frames)
-	drain() {
+    drain() {
         // If T2 is running, we don't do anything and wait for T2 to expire.
         // In that case, we just got a packet from the remote and we're
         // waiting to see if we can coalesce a bunch into one response.
@@ -455,9 +455,9 @@ class Session extends EventEmitter {
         // see if it's ready to receive again. If we get another RNR it'll
         // just start the t3 all over again. If not, it'll call into here
         // and we'll drain at that point.
-		if (this._state.remote_busy) {
-			return;
-		}
+        if (this._state.remote_busy) {
+            return;
+        }
         
         let sequenceNum = this._state.send_sequence;
         if (this._state.remote_REJ_seqno > 0) {
@@ -466,27 +466,27 @@ class Session extends EventEmitter {
 
         // send the packets. Note that we don't actually remove them from
         // the send queue, we just flag them as sent.
-		let startTimer = false;
+        let startTimer = false;
         this.sendQueue.forEach(pkt => {
-			if (distance_between(
-					sequenceNum,
-					this._state.remote_receive_sequence,
+            if (distance_between(
+                    sequenceNum,
+                    this._state.remote_receive_sequence,
                     this.settings.modulo
-				) < this.settings.max_frames
-			) {
-				pkt.receive_sequence = this._state.receive_sequence;
+                ) < this.settings.max_frames
+            ) {
+                pkt.receive_sequence = this._state.receive_sequence;
                 if (!pkt.sent) {
                     pkt.send_sequence = this._state.send_sequence;
                     pkt.sent = true;
                     this._state.send_sequence = 
                         (this._state.send_sequence + 1) % this.settings.modulo;
                 }
-				startTimer = true;
-				emitPacket(pkt);
+                startTimer = true;
+                emitPacket(pkt);
                 
                 sequenceNum = (sequenceNum + 1) % settings.modulo;
-			}
-		});
+            }
+        });
         
         // if we have no rejects but we have nothing new to send, just
         // send an RR
@@ -498,45 +498,45 @@ class Session extends EventEmitter {
         // reset the REJ sequence number
         this._state.remote_REJ_seqno = -1;
         
-		if (startTimer)
+        if (startTimer)
             this._t1_timer.start(this.sendRR, this.resetLink, this.t1interval);
-	}
+    }
 
-	renumber() {
+    renumber() {
         // iterate over this the old fashioned way because we need to know
         // what the index into the array is anyway.
-		for (let p = 0; p < this.sendQueue.length; p++) {
-			this.sendQueue[p].send_sequence = p % settings.modulo;
-			this.sendQueue[p].receive_sequence = 0;
-			this.sendQueue[p].sent = false;
-		}
-	}
+        for (let p = 0; p < this.sendQueue.length; p++) {
+            this.sendQueue[p].send_sequence = p % settings.modulo;
+            this.sendQueue[p].receive_sequence = 0;
+            this.sendQueue[p].sent = false;
+        }
+    }
 
-	receiveAcknowledgement(packet) {
+    receiveAcknowledgement(packet) {
         
         // first, scan the sent packets. If it's a packet we've already
         // sent and it's earlier than the incoming packet's receive seqno,
         // it was received successfully and we can discard it.
-		for (var p = 0; p < this.sendQueue.length; p++) {
-			if (this.sendQueue[p].sent
-				&&
-				this.sendQueue[p].send_sequence != packet.receive_sequence
-				&&
-				distance_between(
-					packet.receive_sequence,
-					this.sendQueue[p].send_sequence,
+        for (var p = 0; p < this.sendQueue.length; p++) {
+            if (this.sendQueue[p].sent
+                &&
+                this.sendQueue[p].send_sequence != packet.receive_sequence
+                &&
+                distance_between(
+                    packet.receive_sequence,
+                    this.sendQueue[p].send_sequence,
                     this.settings.modulo
-				) <= this.settings.max_frames
-			) {
+                ) <= this.settings.max_frames
+            ) {
                 // remove the packet
-				this.sendQueue.splice(p, 1);
-				p--;
-			}
-		}
+                this.sendQueue.splice(p, 1);
+                p--;
+            }
+        }
         
         // set the current receive to the received packet's seqno
-		this._state.remote_receive_sequence = packet.receive_sequence;
-	}
+        this._state.remote_receive_sequence = packet.receive_sequence;
+    }
 
 
     // Connect (6.3.1)
@@ -549,14 +549,14 @@ class Session extends EventEmitter {
     connect() {
 
         // XXX move this validation elsewhere.
-		if (!this._state.initialized) {
+        if (!this._state.initialized) {
             if (this.remoteCallsign.length > 0 && this.remoteSSID > 0
                && this.localCallsign.length > 0 && this.localSSID > 0) {
                 this._state.initialized = true;
             } else {
                 throw 'localCallsign/SSID or remoteCallsign/SSID not set';
             }
-		}
+        }
 
         resetConnectionState();
         this._state.connection = CONNECTING;
@@ -564,11 +564,11 @@ class Session extends EventEmitter {
         let pktType = (settings.modulo == 128) ? 
                     masks.control.frame_types.u_frame.subtypes.sabme :
                     masks.control.frame_types.u_frame.subtypes.sabm;
-		emitPacket(createPacket(pktType, true, true));
+        emitPacket(createPacket(pktType, true, true));
 
         // (Re)start the connect timer
         this._t1_timer.start(this.connect, this.connectFailed, this.t1interval);
-	}
+    }
 
     // Called by the timer callback if the remote never replies to our
     // connect SABM/SABME
@@ -594,31 +594,31 @@ class Session extends EventEmitter {
     disconnect() {
         // if we're not connected, this isn't really an error, but we
         // should blab about it.
-		if (this._state.connection != CONNECTED) {
-			console.log("ax25.Session.disconnect: Not connected.");
+        if (this._state.connection != CONNECTED) {
+            console.log("ax25.Session.disconnect: Not connected.");
             // stop the send timer in case we started connecting and then
             // were told to stop before we actually connected.
             this.stopAllTimers();
-			this._state.connection = DISCONNECTED;
-			return;
-		}
+            this._state.connection = DISCONNECTED;
+            return;
+        }
 
-		this._state.connection = DISCONNECTING;
+        this._state.connection = DISCONNECTING;
         this.sendQueue.length = 0;
 
-		emitPacket(createPacket(masks.control.frame_types.u_frame.subtypes.disc,
+        emitPacket(createPacket(masks.control.frame_types.u_frame.subtypes.disc,
                                 true, true));
 
         // (Re)start the disconnect timer
         this._t1_timer.start(this.disconnect, this.disconnectFailed, this.t1interval);
-	}
+    }
 
     // Called by the timer callback if the remote never replies
     // send a DM for kicks, and then go to sleep.
     disconnectFailed() {
         // XXX double check the poll_final and command values. Are they
         // supposed to be false, false?
-		emitPacket(createPacket(masks.control.frame_types.u_frame.subtypes.dm,
+        emitPacket(createPacket(masks.control.frame_types.u_frame.subtypes.dm,
                                 false, false));
 
         this.stopAllTimers();
@@ -646,18 +646,18 @@ class Session extends EventEmitter {
             data = Buffer.from(data, encoding);
         }
 
-		while (data.byteLength) {
-		    let pkt = createPacket(masks.control.frame_types.i_frame,
+        while (data.byteLength) {
+            let pkt = createPacket(masks.control.frame_types.i_frame,
                             false, true, data.slice(0, this.max_iframe_data));
-			this._sendQueue.push(pkt);
+            this._sendQueue.push(pkt);
             data = data.slice(this.max_iframe_data);
-		}
+        }
         
         // Ok, now try to send them. If the t2 timer is running this will
         // just do nothing and we'll send them later. If it's not running,
         // this will start the send process.
         drain();
-	}
+    }
 
 
     // Receive
@@ -666,11 +666,11 @@ class Session extends EventEmitter {
         // XXX Should we require the app to specify our address and
         // just use that, ignoring any packets that aren't for us?
         // Or should we leave that filtering up to the application layer?
-		if (!this._state.initialized) {
-			this.destination = packet.source;
+        if (!this._state.initialized) {
+            this.destination = packet.source;
             this.source = packet.destination;
-			this._state.initialized = true;
-		}
+            this._state.initialized = true;
+        }
 
         // pull the repeater path from the incoming packet and reverse
         // it so it's handily available for any outbound packets we
@@ -678,38 +678,38 @@ class Session extends EventEmitter {
         let repeaterPath = [];
         while (packet.repeaterPath.length - 1) {
             let address = packet.repeaterPath.shift();
-			// Drop any packet that was meant for a repeater and not us
+            // Drop any packet that was meant for a repeater and not us
             if (address.ssid & masks.address.crh) {
                 return false;
             }
-			address.ssid |= (0<<7);
-			repeaterPath.push(address);
+            address.ssid |= (0<<7);
+            repeaterPath.push(address);
         }
         this.repeaterPath = repeaterPath;
 
         let response = null;
 
-		let emit = [];
+        let emit = [];
 
-		switch (get_frame_type_name(packet.type)) {
-		
+        switch (get_frame_type_name(packet.type)) {
+        
             // Set Asynchronous Balanced Mode, aka Connect in 8-frame
             // mode (4.3.3.1). If we're not connected, this will initiate
             // the connection. If we are connected, this will reset it and
             // and outstand IFrames get tossed.
             // Theoretically we can send a DM frame if we don't want to
             // accept this, but why wouldn't we?
-			case 'u_frame_sabm':
+            case 'u_frame_sabm':
                 resetConnectionState();
-				this._state.connection = CONNECTED;
-				settings.modulo = 8; // SABM means old version of protocol
-				renumber();
-				emit = ["connection", true];
-		        response = createPacket(
+                this._state.connection = CONNECTED;
+                settings.modulo = 8; // SABM means old version of protocol
+                renumber();
+                emit = ["connection", true];
+                response = createPacket(
                     masks.control.frame_types.u_frame.subtypes.ua,
                     packet.poll_final,
                     true)
-				break;
+                break;
 
             // Connect Extended (128-frame mode) (4.3.3.2). As with the
             // SABM, if we're not connected this will initiate the connection.
@@ -717,68 +717,68 @@ class Session extends EventEmitter {
             // get tossed.
             // Theoretically we can send a DM frame if we don't want to
             // accept this, but why wouldn't we?
-			case 'u_frame_sabme':
+            case 'u_frame_sabme':
                 resetConnectionState();
-				this._state.connection = CONNECTED;
-				settings.modulo = 128; // SABME means newer version of protocol
-				renumber();
-				emit = ["connection", true];
-		        response = createPacket(
+                this._state.connection = CONNECTED;
+                settings.modulo = 128; // SABME means newer version of protocol
+                renumber();
+                emit = ["connection", true];
+                response = createPacket(
                     masks.control.frame_types.u_frame.subtypes.ua,
                     packet.poll_final,
                     true);
-				break;
+                break;
 
             // Disconnect (4.3.3.3). This is fairly straightforward.
             // If we're connected, reset our state, send a disconnect message,
             // and let the upper layer know the remote disconnected.
             // If we're not connected, reply with a WTF? (DM) message.
-			case 'u_frame_disc':
-				if (state.connection == CONNECTED) {
+            case 'u_frame_disc':
+                if (state.connection == CONNECTED) {
                     resetConnectionState();
                     this.emit("connection", false);
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.ua,
                         packet.poll_final,
                         true);
-				} else {
+                } else {
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.dm,
                         true,
                         true);
-				}
+                }
                 break;
-				
+                
             // Unnumbered Acknowledge (4.3.3.4). We get this in response to
             // SABM(E) packets and DISC packets. It's not clear what's supposed
             // to happen if we get this when we're in another state. Right now
             // if we're connected, we ignore it.
-			case 'u_frame_ua':
-				if (state.connection == CONNECTING) {
+            case 'u_frame_ua':
+                if (state.connection == CONNECTING) {
                     // finish the connect
-					this._state.connection = CONNECTED;
+                    this._state.connection = CONNECTED;
                     this._t1_timer.stop();
                     this._t3_timer.start();
                     emit = ["connection", true];
-				} else if (state.connection == DISCONNECTING) {
+                } else if (state.connection == DISCONNECTING) {
                     // finish the disconnect
-					this._state.connection = DISCONNECTED;
+                    this._state.connection = DISCONNECTED;
                     this.stopAllTimers();
                     emit = ["connection", false];
-				} else if (state.connection == CONNECTED) {
-					this._state.remote_busy = false;
+                } else if (state.connection == CONNECTED) {
+                    this._state.remote_busy = false;
                     // ignore it otherwise.
-					//this.connect();
-				} else {
+                    //this.connect();
+                } else {
                     // we're disconnected and got a UA. Send a Disconnected
                     // Mode response. (4.3.3.5)
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.dm,
                         packet.poll_final,
                         true);
-				}
-				break;
-			
+                }
+                break;
+            
             // Disconnected Mode (4.3.3.5).
             // If we're connected and we get this, the remote hasn't gone
             // through the whole connection process. It probably missed part
@@ -792,46 +792,46 @@ class Session extends EventEmitter {
             // we transition to disconnected mode.
             // If we get this when we're unconnected, we send a WTF? (DM)
             // message as a reply.
-			case 'u_frame_dm':
-				if (state.connection == CONNECTED) {
-					this.connect();
-				} else if(state.connection == CONNECTING || state.connection == DISCONNECTING) {
+            case 'u_frame_dm':
+                if (state.connection == CONNECTED) {
+                    this.connect();
+                } else if(state.connection == CONNECTING || state.connection == DISCONNECTING) {
                     resetConnectionState();
-					if (state.connection == CONNECTING) {
+                    if (state.connection == CONNECTING) {
                         // reconnect in old mode
-						this._settings.modulo = 8;
-						this.connect();
-					}
-					emit = ["connection", false];
-				} else {
-					this._state.remote_busy = false;
+                        this._settings.modulo = 8;
+                        this.connect();
+                    }
+                    emit = ["connection", false];
+                } else {
+                    this._state.remote_busy = false;
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.dm,
                         packet.poll_final,
                         true);
-				}
-				break;
-		
+                }
+                break;
+        
             // Unnumbered Information (4.3.3.6). We send this to the upper
             // layer as an out-of-band UI packet, but if the pollfinal flag
             // is set internally we fabricate a response for it.
             //
             // XXX handle "uidata" at upper layer - make note of this in the
             // docs.
-			case 'u_frame_ui':
+            case 'u_frame_ui':
                 this._state.remote_busy = false;
-				if (packet.pollFinal) {
+                if (packet.pollFinal) {
                     let type = this._state.connection == CONNECTED ?
                         masks.control.frame_types.u_frame.subtypes.rr :
                         masks.control.frame_types.u_frame.subtypes.dm;
                     response = createPacket(type, false, true);
-				}
-				emit = ["uidata", packet.info];
-				break;
+                }
+                emit = ["uidata", packet.info];
+                break;
 
-			// Exchange Identification (4.3.3.7). Placeholder pending XID
+            // Exchange Identification (4.3.3.7). Placeholder pending XID
             // implementation.
-			case 'u_frame_xid':
+            case 'u_frame_xid':
                 // XXX read the sent XID parameters and change our settings
                 // as needed. Fabricate a response if this was initiated
                 // by the remote. If we sent a XID earlier and this is a
@@ -843,65 +843,65 @@ class Session extends EventEmitter {
                     false,
                     true,
                     xidData);
-				break;
+                break;
 
             // Test (4.3.3.8). Echo back a test response.
-			case 'u_frame_test':
+            case 'u_frame_test':
                 this._state.remote_busy = false;
                 response = createPacket(
                     masks.control.frame_types.u_frame.subtypes.test,
                     packet.poll_final,
                     true,
                     packet.payload);
-				break;
-			
+                break;
+            
             // Frame Recovery message. (4.3.3.9). This was removed from the
             // AX25 standard, and if we get one we've got an old client and
             // just supposed to reset the link and possibly reconnect as
             // modulo8.
-			case 'u_frame_frmr':
+            case 'u_frame_frmr':
                 this._state.remote_busy = false;
-				if(state.connection == CONNECTING && settings.modulo == 128) {
-					settings.modulo = 8;
-					this.connect();
-				} else if(state.connection == CONNECTED) {
-					this.connect();
-				} else {
+                if(state.connection == CONNECTING && settings.modulo == 128) {
+                    settings.modulo = 8;
+                    this.connect();
+                } else if(state.connection == CONNECTED) {
+                    this.connect();
+                } else {
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.dm,
                         true,
                         true);
-				}
-				break;
-			
+                }
+                break;
+            
             // Receive Ready (4.3.2.1)
             // Update our counts and handle any connection status changes
             // (pollFinal).
             // Get ready to do a drain by starting the t2 timer. If we get
             // more RR's or IFRAMES, we'll have to reset the t2 timer. 
             // If we're not connected, send a WTF? (DM) packet
-			case 's_frame_rr':
+            case 's_frame_rr':
                 this._state.remote_busy = false;
-				if (state.connection == CONNECTED) {
-					this._state.remote_busy = false;
-					receiveAcknowledgement(packet);
+                if (state.connection == CONNECTED) {
+                    this._state.remote_busy = false;
+                    receiveAcknowledgement(packet);
                     // XXX do we need to send a REJ or SREJ if it was out of
                     // order?
-					if (packet.command && packet.poll_final) {
+                    if (packet.command && packet.poll_final) {
                         response = createPacket(
                             masks.control.frame_types.s_frame.subtypes.rr,
                             true,
                             true);
-					}
+                    }
                     this._t2_timer.start();
-				} else if (packet.command) {
+                } else if (packet.command) {
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.dm,
                         true,
                         true);
-				}
-				break;
-			
+                }
+                break;
+            
             // Receive Not Ready (4.3.2.2) (6.4.9)
             // Just update our counts and handle any connection status
             // changes (pollFinal).
@@ -911,61 +911,61 @@ class Session extends EventEmitter {
             // 
             // XXX (Not sure on this) We may need to restart the T1 timer
             // instead of the t3 if we got this as a reject of an IFrame.
-			case 's_frame_rnr':
-				if (state.connection == CONNECTED) {
-					state.remote_busy = true;
-					receiveAcknowledgement(packet);
+            case 's_frame_rnr':
+                if (state.connection == CONNECTED) {
+                    state.remote_busy = true;
+                    receiveAcknowledgement(packet);
                     // XXX do we need to send a REJ or SREJ if it was out of
                     // order?
-					if (packet.command && packet.poll_final) {
+                    if (packet.command && packet.poll_final) {
                         response = createPacket(
                             masks.control.frame_types.s_frame.subtypes.rr,
                             true,
                             true);
-					}
+                    }
                     this.stopAllTimers();
                     this._t3_timer.start();
-				} else if (packet.command) {
+                } else if (packet.command) {
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.dm,
                         true,
                         true);
-				}
-				break;
-			
+                }
+                break;
+            
             // Reject (4.3.2.3). The remote rejected a single connected frame,
             // which means it got something out of order.
             // Leave T1 alone, as this will trigger a resend
             // Set T2, in case we get more data from the remote soon.
-			case 's_frame_rej':
-				if (state.connection == CONNECTED) {
-					state.remote_busy = false;
-					receiveAcknowledgement(packet);
-					if (packet.command && packet.poll_final) {
+            case 's_frame_rej':
+                if (state.connection == CONNECTED) {
+                    state.remote_busy = false;
+                    receiveAcknowledgement(packet);
+                    if (packet.command && packet.poll_final) {
                         response = createPacket(
                             masks.control.frame_types.s_frame.subtypes.rr,
                             true,
                             true);
-					}
+                    }
                     this._state.remote_REJ_seqno = packet.receive_sequence;
                     this._t2_timer.start();
-				} else {
+                } else {
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.dm,
                         true,
                         true);
-				}
-				break;
-			
+                }
+                break;
+            
             // Information (4.3.1). This is our data packet.
             // We don't current send SREJ's at all.
-			case 'i_frame':
-				if (state.connection == CONNECTED) {
-					if (packet.receive_sequence==this._state.receive_sequence) {
+            case 'i_frame':
+                if (state.connection == CONNECTED) {
+                    if (packet.receive_sequence==this._state.receive_sequence) {
                         // everything's good.
-						state.sent_REJ = false;
-						state.receive_sequence =
-							(state.receive_sequence + 1) % settings.modulo;
+                        state.sent_REJ = false;
+                        state.receive_sequence =
+                            (state.receive_sequence + 1) % settings.modulo;
                         receiveAcknowledgement(packet);
                         response = createPacket(
                             masks.control.frame_types.s_frame.subtypes.rr,
@@ -974,9 +974,9 @@ class Session extends EventEmitter {
                         if (!packet.poll_final) {
                             this._t2_timer.start();
                         }
-						emit = ["data", packet.info];
-					} else if (!state.sent_REJ) {
-						state.sent_REJ = true;
+                        emit = ["data", packet.info];
+                    } else if (!state.sent_REJ) {
+                        state.sent_REJ = true;
                         response = createPacket(
                             masks.control.frame_types.s_frame.subtypes.rej,
                             packet.poll_final,
@@ -984,29 +984,29 @@ class Session extends EventEmitter {
                         if (!packet.poll_final) {
                             this._t2_timer.start();
                         }
-					}
+                    }
                     // else {
                     //    we got an out of sequence packet, but we already
                     //    sent a REJ so do nothing.
                     // }
                     
-				} else if (packet.command) {
+                } else if (packet.command) {
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.dm,
                         true,
                         true);
-				}
-				break;
-				
-		}
+                }
+                break;
+                
+        }
 
-		if (response instanceof Packet)
-			emitPacket(response);
+        if (response instanceof Packet)
+            emitPacket(response);
 
-		if (emit.length == 2)
-			this.emit(emit[0], emit[1]);
+        if (emit.length == 2)
+            this.emit(emit[0], emit[1]);
 
-	}
+    }
 
 }
 
