@@ -1,8 +1,8 @@
 'use strict';
 const EventEmitter = require('events');
 const path = require('path');
-const Masks = require(path.join(__dirname, 'masks.js'));
-const Packet = require(path.join(__dirname, 'packet.js'));
+const masks = require(path.join(__dirname, 'masks.js'));
+const packet = require(path.join(__dirname, 'packet.js'));
 
 // XXX TODO
 //
@@ -134,23 +134,6 @@ class Session extends EventEmitter {
         // private queue for holding packets waiting to be sent.
         this._sendQueue = [];
 
-        // timers
-        this._t1_timer = new SessionTimer(this.sendRR, this.resetLink,
-                                        this.t1interval, this.retries);
-        this._t2_timer = new SessionTimer(null, this.drain, this.t2interval);
-        this._t3_timer = new SessionTimer(this.sendRR, this.disconnect,
-                                        this.t3interval, this.retries);
-
-        // set the internal properties
-        _properties.baud = baud;
-        _properties.ack_time = ack_time;
-        _properties.max_iframe_data = max_iframe_data;
-        _properties.retries = retries;
-        _properties.selective_reject = selective_reject;
-        _properties.full_duplex = full_duplex;
-        _properties.modulo = modulo128 ? 128 : 8;
-
-
         // properties accessor glue functions
         this._set = function(property, value) {
             if (typeof _properties[property] == 'undefined') {
@@ -165,6 +148,24 @@ class Session extends EventEmitter {
             }
             return _properties[property];
         }
+
+        // set the internal properties
+        _properties.baud = baud;
+        _properties.ack_time = ack_time;
+        _properties.max_iframe_data = max_iframe_data;
+        _properties.retries = retries;
+        _properties.selective_reject = selective_reject;
+        _properties.full_duplex = full_duplex;
+        _properties.modulo = modulo128 ? 128 : 8;
+
+        // timers. define these after the _get() function above because
+        // these use that and it's not automatically hoisted.
+        this._t1_timer = new SessionTimer(this.sendRR, this.resetLink,
+                                        this.t1interval, this.retries);
+        this._t2_timer = new SessionTimer(null, this.drain, this.t2interval);
+        this._t3_timer = new SessionTimer(this.sendRR, this.disconnect,
+                                        this.t3interval, this.retries);
+
 
     }
 
@@ -368,7 +369,7 @@ class Session extends EventEmitter {
 
     // This is our low-level send routine. Everything that wants to send a
     // packet calls into this.
-	function emitPacket(packet) {
+	emitPacket(packet) {
 		if (typeof packet == "undefined" || !(packet instanceof Packet)) {
             throw 'emitPacket - Invalid packet';
 		}
@@ -392,6 +393,8 @@ class Session extends EventEmitter {
         if (payload) {
             packet.payload = payload;
         }
+
+        return packet;
     }
 
     resetConnectionState() {
@@ -416,7 +419,6 @@ class Session extends EventEmitter {
 	sendRR(pollFinal=true) {
 		emitPacket(createPacket(masks.control.frame_types.s_frame.subtypes.rr,
                                 pollFinal, true));
-		);
 	}
 
 
@@ -494,7 +496,7 @@ class Session extends EventEmitter {
             this._t1_timer.start(this.sendRR, this.resetLink, this.t1interval);
 	}
 
-	var renumber = function() {
+	renumber() {
         // iterate over this the old fashioned way because we need to know
         // what the index into the array is anyway.
 		for (let p = 0; p < this.sendQueue.length; p++) {
@@ -639,11 +641,10 @@ class Session extends EventEmitter {
         }
 
 		while (data.byteLength) {
-			this.sendQueue.push(
-		        createPacket(masks.control.frame_types.i_frame, false, true,
-                                data.slice(0, settings.max_iframe_data));
-			);
-            data = data.slice(settings.max_iframe_data);
+		    let pkt = createPacket(masks.control.frame_types.i_frame,
+                            false, true, data.slice(0, this.max_iframe_data));
+			this._sendQueue.push(pkt);
+            data = data.slice(this.max_iframe_data);
 		}
         
         // Ok, now try to send them. If the t2 timer is running this will
@@ -674,6 +675,7 @@ class Session extends EventEmitter {
 			// Drop any packet that was meant for a repeater and not us
             if (address.ssid & masks.address.crh) {
                 return false;
+            }
 			address.ssid |= (0<<7);
 			repeaterPath.push(address);
         }
