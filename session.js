@@ -363,6 +363,12 @@ class Session extends EventEmitter {
         return this.link_poll_time;
     }
 
+    stopAllTimers() {
+        this._t1_timer.stop();
+        this._t2_timer.stop();
+        this._t3_timer.stop();
+    }
+
     //
     // Send side stuff
     // 
@@ -398,7 +404,7 @@ class Session extends EventEmitter {
     }
 
     resetConnectionState() {
-        stopAllTimers();
+        this.stopAllTimers();
         this._state.connection = DISCONNECTED;
         this._state.receive_sequence = 0;
         this._state.send_sequence = 0;
@@ -615,7 +621,7 @@ class Session extends EventEmitter {
 		emitPacket(createPacket(masks.control.frame_types.u_frame.subtypes.dm,
                                 false, false));
 
-        stopAllTimers();
+        this.stopAllTimers();
         this._state.connection = DISCONNECTED;
     }
 
@@ -757,7 +763,7 @@ class Session extends EventEmitter {
 				} else if (state.connection == DISCONNECTING) {
                     // finish the disconnect
 					this._state.connection = DISCONNECTED;
-                    stopAllTimers();
+                    this.stopAllTimers();
                     emit = ["connection", false];
 				} else if (state.connection == CONNECTED) {
 					this._state.remote_busy = false;
@@ -917,7 +923,7 @@ class Session extends EventEmitter {
                             true,
                             true);
 					}
-                    stopAllTimers();
+                    this.stopAllTimers();
                     this._t3_timer.start();
 				} else if (packet.command) {
                     response = createPacket(
