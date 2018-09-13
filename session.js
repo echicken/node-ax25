@@ -4,6 +4,7 @@ const path = require('path');
 const masks = require(path.join(__dirname, 'masks.js'));
 const packet = require(path.join(__dirname, 'packet.js'));
 
+
 // XXX TODO
 //
 // * Sort out timers. I don't really like the way they're done.
@@ -13,7 +14,6 @@ const packet = require(path.join(__dirname, 'packet.js'));
 //         disconnect
 //     XXX Right now, when the t3 expires, we send an RR, but don't start
 //         a timer after that. That doesn't seem right.
-// * Sort out p-bit vs f-bit stuff
 // * Sort out the remote_busy/drain scenario. See the notes in drain().
 // * Double-check all the poll_final and command settings
 // * Handle XID packets, both sending and receiving
