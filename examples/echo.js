@@ -5,16 +5,13 @@ SSID pair, echoes whatever the client sends back to it.
 Removing extreme profanity from comment.  Seriously?
 */
 
-var ax25 = require("../index.js"),
+const KISS_TNC = require("kiss-tnc");
+const AX25 = require("../index.js");
 util = require("util");
 
 var myCallsign = "VE3XEC";
 var mySSID = 0;
-var tnc = new ax25.kissTNC(
-	{	serialPort : "/dev/ttyUSB1",
-		baudRate : 9600
-	}
-);
+const tnc = new KISS_TNC("/dev/ttyUSB1", 9600);
 
 var sessions = {};
 
@@ -22,7 +19,7 @@ tnc.on(
 	"frame",
 	function(frame) {
 
-		var packet = new ax25.Packet();
+		var packet = new AX25.Packet();
 		packet.disassemble(frame);
 		if( packet.destinationCallsign != myCallsign
 			||
@@ -41,9 +38,9 @@ tnc.on(
 			packet.destinationSSID
 		);
 
-		if(typeof sessions[clientID] == "undefined") {
+		if (typeof sessions[clientID] == "undefined") {
 
-			sessions[clientID] = new ax25.Session();
+			sessions[clientID] = new AX25.Session();
 
 			sessions[clientID].on(
 				"packet",
@@ -59,7 +56,7 @@ tnc.on(
 					sessions[clientID].sendString(
 						util.format(
 							"You sent: %s\r\n",
-							ax25.Utils.byteArrayToString(data)
+							AX25.Utils.byteArrayToString(data)
 						)
 					);
 				}
