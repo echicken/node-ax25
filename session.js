@@ -36,10 +36,17 @@ class SessionTimer {
     //
     // variables defines as "this.variablename" are publicly accessible
     // as usual.
-    constructor(repetitions = 1) {
+    constructor(on_alarm=null, on_timeout=null, interval=1, repetitions=1) {
         let _evt = null;
         let _running = false;
-        let _repetitions = repetitions;
+        let _interval = 1;
+        let _repetitions = 1;
+        let _on_alarm = null;
+        let _on_timeout = null;
+        if (typeof interval == "number") _interval = interval;
+        if (typeof repetitions == "number") _repetitions = repetitions;
+        if (typeof on_alarm == "function") _on_alarm = on_alarm;
+        if (typeof on_timeout == "function") _on_timeout = on_timeout;
 
         this.stop = function() {
             if (_running) {
@@ -48,17 +55,19 @@ class SessionTimer {
             }
         }
 
-        this.start = function(callback, on_timeout, interval=1, repetitons=1) {
+        this.start = function(on_alarm=null, on_timeout=null, interval=1) {
             stop();
             let repetition = 0;
+            if (typeof on_alarm == "function") _on_alarm = on_alarm;
+            if (typeof on_timeout == "function") on_timeout = on_timeout;
             _evt = setInterval(
                 () => {
                     if (repetition < repetitions) {
                         repetition++;
-                        callback();
+                        if (on_alarm) on_alarm();
                     } else {
                         this.stop();
-                        on_timeout();
+                        if (on_timeout) on_timeout();
                     }
                 }, interval
             );
@@ -121,8 +130,11 @@ class Session extends EventEmitter {
         this._sendQueue = [];
 
         // timers
-        this._t1t3_timer = new Timer(); // t1 and t3
-        this._t2_timer = new Timer(); // t2 only
+        this._t1_timer = new SessionTimer(this.sendRR, this.resetLink,
+                                        this.t1interval, this.retries);
+        this._t2_timer = new SessionTimer(null, this.drain, this.t2interval);
+        this._t3_timer = new SessionTimer(this.sendRR, this.disconnect,
+                                        this.t3interval, this.retries);
 
         // set the internal properties
         _properties.baud = baud;
@@ -299,7 +311,7 @@ class Session extends EventEmitter {
         }
     }
 
-    sendQueueLength(unsentOnly=true) {
+    sendQueueLength(unsentOnly=false) {
         if (unsentOnly) {
             let count = 0;
             this.sendQueue.forEach(pkt => {
@@ -378,13 +390,14 @@ class Session extends EventEmitter {
     }
 
     resetConnectionState() {
+        stopAllTimers();
         this._state.connection = DISCONNECTED;
         this._state.receive_sequence = 0;
         this._state.send_sequence = 0;
         this._state.remote_receive_sequence = 0;
         this._state.remote_REJ_seqno = -1;
         this._state.remote_busy = false;
-        this._sendQueue = [];
+        this._sendQueue.length = 0;
     }
 
     // Send an RR (Receive Ready) packet. This happens every time we've
@@ -473,7 +486,7 @@ class Session extends EventEmitter {
         this._state.remote_REJ_seqno = -1;
         
 		if (startTimer)
-            this._t1t3_timer.start(sendRR, resetLink, this.t1interval(), this.retries);
+            this._t1_timer.start(this.sendRR, this.resetLink, this.t1interval);
 	}
 
 	var renumber = function() {
@@ -532,33 +545,22 @@ class Session extends EventEmitter {
             }
 		}
 
-		this._state.connection = CONNECTING;
-		this._state.receive_sequence = 0;
-		this._state.send_sequence = 0;
-		this._state.remote_receive_sequence = 0;
-		this._state.remote_busy = false;
-        
-        this._state.remote_REJ_seqno = -1;
-
-        this.sendQueue.length = 0;
+        resetConnectionState();
+        this._state.connection = CONNECTING;
 
         let pktType = (settings.modulo == 128) ? 
                     masks.control.frame_types.u_frame.subtypes.sabme :
                     masks.control.frame_types.u_frame.subtypes.sabm;
 		emitPacket(createPacket(pktType, true, true));
 
-		this.renumber();
-
         // (Re)start the connect timer
-        this._t1t3_timer.start(this.connect, this.connectFailed,
-                                    this.t1interval(), this.retries);
+        this._t1_timer.start(this.connect, this.connectFailed, this.t1interval);
 	}
 
     // Called by the timer callback if the remote never replies to our
     // connect SABM/SABME
     connectFailed() {
-        this._t1t3_timer.stop();
-        this._t2_timer.stop(); // shouldn't be running anyway
+        this.stopAllTimers();
         this._state.connection = DISCONNECTED;
     }
 
@@ -572,6 +574,10 @@ class Session extends EventEmitter {
     // If the other side gets this, we should get a DM packet from them
     // which is handled by the receive state machine.
     //
+    // XXX The top layer shouldn't call this without checking to see if the
+    // the sendQueue is empty (via session.sendQueueLength()) or packets
+    // in the queue won't get sent.
+    //
     disconnect() {
         // if we're not connected, this isn't really an error, but we
         // should blab about it.
@@ -579,19 +585,19 @@ class Session extends EventEmitter {
 			console.log("ax25.Session.disconnect: Not connected.");
             // stop the send timer in case we started connecting and then
             // were told to stop before we actually connected.
-            this._t1t3_timer.stop();
+            this.stopAllTimers();
 			this._state.connection = DISCONNECTED;
 			return;
 		}
 
-		emitPacket(createPacket(masks.control.frame_types.u_frame.subtypes.disc,
-                                true, true));
 		this._state.connection = DISCONNECTING;
         this.sendQueue.length = 0;
 
+		emitPacket(createPacket(masks.control.frame_types.u_frame.subtypes.disc,
+                                true, true));
+
         // (Re)start the disconnect timer
-        this._t1t3_timer.start(this.disconnect, this.disconnectFailed,
-                        this.t1interval, this.retries);
+        this._t1_timer.start(this.disconnect, this.disconnectFailed, this.t1interval);
 	}
 
     // Called by the timer callback if the remote never replies
@@ -602,8 +608,7 @@ class Session extends EventEmitter {
 		emitPacket(createPacket(masks.control.frame_types.u_frame.subtypes.dm,
                                 false, false));
 
-        this._t2_timer.stop();
-        this._t1t3_timer.stop();
+        stopAllTimers();
         this._state.connection = DISCONNECTED;
     }
 
@@ -684,8 +689,6 @@ class Session extends EventEmitter {
 			case 'u_frame_sabm':
                 resetConnectionState();
 				this._state.connection = CONNECTED;
-                this._t1t3_timer.stop();
-                this._t2_timer.stop();
 				settings.modulo = 8; // SABM means old version of protocol
 				renumber();
 				emit = ["connection", true];
@@ -704,8 +707,6 @@ class Session extends EventEmitter {
 			case 'u_frame_sabme':
                 resetConnectionState();
 				this._state.connection = CONNECTED;
-                this._t1t3_timer.stop();
-                this._t2_timer.stop();
 				settings.modulo = 128; // SABME means newer version of protocol
 				renumber();
 				emit = ["connection", true];
@@ -722,8 +723,6 @@ class Session extends EventEmitter {
 			case 'u_frame_disc':
 				if (state.connection == CONNECTED) {
                     resetConnectionState();
-                    this._t1t3_timer.stop();
-                    this._t2_timer.stop();
                     this.emit("connection", false);
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.ua,
@@ -742,17 +741,19 @@ class Session extends EventEmitter {
             // to happen if we get this when we're in another state. Right now
             // if we're connected, we ignore it.
 			case 'u_frame_ua':
-				if(state.connection == CONNECTING) {
+				if (state.connection == CONNECTING) {
                     // finish the connect
 					this._state.connection = CONNECTED;
-                    this._t1t3_timer.start(this.sendRR,this.disconnect,this.t3interval());
+                    this._t1_timer.stop();
+                    this._t3_timer.start();
                     emit = ["connection", true];
 				} else if (state.connection == DISCONNECTING) {
                     // finish the disconnect
 					this._state.connection = DISCONNECTED;
-                    this._state.sendTimer.stop();
+                    stopAllTimers();
                     emit = ["connection", false];
 				} else if (state.connection == CONNECTED) {
+                    // XXX should we unset remote_busy?
                     // ignore it.
 					//this.connect();
 				} else {
@@ -783,8 +784,6 @@ class Session extends EventEmitter {
 					this.connect();
 				} else if(state.connection == CONNECTING || state.connection == DISCONNECTING) {
                     resetConnectionState();
-                    this._t1t3_timer.stop();
-                    this._t2_timer.stop();
 					if (state.connection == CONNECTING) {
                         // reconnect in old mode
 						this._settings.modulo = 8;
@@ -869,7 +868,7 @@ class Session extends EventEmitter {
                             true,
                             true);
 					}
-                    this._t2_timer.start(this.drain, this.drain, this.t2interval);
+                    this._t2_timer.start();
 				} else if (packet.command) {
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.dm,
@@ -885,7 +884,7 @@ class Session extends EventEmitter {
             // we're about to send some. (Subsequent received packets may
             // restart the t2 timer.)
             // 
-            // XXX (Not sure on this) We also need to restart the T1 timer
+            // XXX (Not sure on this) We may also need to restart the T1 timer
             // because we probably got this as a reject of an I-frame.
 			case 's_frame_rnr':
 				if (state.connection == CONNECTED) {
@@ -897,8 +896,9 @@ class Session extends EventEmitter {
                             true,
                             true);
 					}
-                    this._t2_timer.stop();
-                    this._t1t3_timer.start(this.sendRR,this.disconnect,this.t3interval(), _this.retries);
+                    stopAllTimers();
+                    //this._t1_timer.start(); // XXX see note above
+                    this._t3_timer.start();
 				} else if (packet.command) {
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.dm,
@@ -922,7 +922,7 @@ class Session extends EventEmitter {
                             true);
 					}
                     this._state.remote_REJ_seqno = packet.receive_sequence;
-                    this._t2_timer.start(this.drain, this.drain, this.t2interval);
+                    this._t2_timer.start();
 				} else {
                     response = createPacket(
                         masks.control.frame_types.u_frame.subtypes.dm,
@@ -946,7 +946,7 @@ class Session extends EventEmitter {
                             packet.poll_final,
                             packet.command);
                         if (!packet.poll_final) {
-                            this._t2_timer.start(this.drain, this.drain, this.t2interval);
+                            this._t2_timer.start();
                         }
 						emit = ["data", packet.info];
 					} else if (!state.sent_REJ) {
@@ -956,7 +956,7 @@ class Session extends EventEmitter {
                             packet.poll_final,
                             packet.command);
                         if (!packet.poll_final) {
-                            this._t2_timer.start(this.drain, this.drain, this.t2interval);
+                            this._t2_timer.start();
                         }
 					}
                     // else {
